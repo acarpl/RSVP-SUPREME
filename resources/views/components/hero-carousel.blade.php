@@ -10,7 +10,7 @@
     <div class="carousel-inner">
         <!-- Slide 1 -->
         <div class="carousel-item active">
-            <img src="{{ asset('images/Futsal.svg') }}" class="d-block w-100" alt="Lapangan Futsal">
+            <img src="{{ asset('images/Sepak Bola.svg') }}" class="d-block w-100" alt="Lapangan Futsal">
             <div class="carousel-caption d-none d-md-block">
                 <h2 class="text-white fw-bold">Booking Lapangan Mudah!</h2>
                 <p class="fs-5">Cari, pesan, main — semua dalam satu aplikasi.</p>
@@ -20,7 +20,7 @@
 
         <!-- Slide 2 -->
         <div class="carousel-item">
-            <img src="{{ asset('images/Voli.svg') }}" class="d-block w-100" alt="Voucher Diskon">
+            <img src="{{ asset('images/Basket.svg') }}" class="d-block w-100" alt="Voucher Diskon">
             <div class="carousel-caption d-none d-md-block">
                 <h2 class="text-white fw-bold">Diskon Hingga 50%</h2>
                 <p class="fs-5">Gunakan voucher eksklusif untuk booking lapangan favoritmu.</p>
