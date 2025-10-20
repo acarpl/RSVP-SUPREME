@@ -7,6 +7,7 @@
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <!-- Custom CSS -->
     <style>
@@ -14,6 +15,12 @@
         body {
             font-family: "Plus Jakarta Sans", sans-serif;
             font-optical-sizing: auto;
+            font-weight: <weight>;
+            font-style: normal;
+        }
+        .bold-font {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            font-style: bold;
         }
         .blue-grid {
             background-color: #0047AB;
@@ -44,6 +51,21 @@
         .btn {
             border-radius: 100px;
             margin: 5px;
+        }
+        .navbar-custom {
+            background-color: #D85C5C !important;
+        }
+
+        .navbar-custom .nav-link {
+            color: white !important;
+        }
+
+        .navbar-custom .nav-link:hover {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .text-custom-red {
+            color: #D85C5C !important;
         }
     </style>
 </head>

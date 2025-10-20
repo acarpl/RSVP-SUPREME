@@ -1,17 +1,30 @@
 <nav class="navbar navbar-custom navbar-expand-lg">
     <div class="container">
+        <!-- Logo (kiri) -->
         <a class="navbar-brand text-white fw-bold" href="/">SPORTYKUY</a>
-        <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navMenu">
+
+        <!-- Toggle button -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
             <span class="navbar-toggler-icon"></span>
         </button>
 
+        <!-- Navbar Collapse -->
         <div class="collapse navbar-collapse" id="navMenu">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Fields</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Product</a></li>
-                <li class="nav-item"><a class="btn btn-outline-light btn-sm mt-2 mt-lg-0">Register</a></li>
-                <li class="nav-item"><a class="btn btn-light btn-sm mt-2 mt-lg-0 text-custom-red">Login</a></li>
+            <!-- Menu tengah: Home, Fields, Product -->
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item"><a class="nav-link text-white" href="/">Home</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="#">Fields</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="#">Product</a></li>
+            </ul>
+
+            <!-- Menu kanan: Register & Login -->
+            <ul class="navbar-nav ms-auto ms-lg-0">
+                <li class="nav-item">
+                    <a href="#" class="btn btn-outline-light btn-sm">Register</a>
+                </li>
+                <li class="nav-item ms-2">
+                    <a href="#" class="btn btn-light btn-sm text-custom-red">Login</a>
+                </li>
             </ul>
         </div>
     </div>
