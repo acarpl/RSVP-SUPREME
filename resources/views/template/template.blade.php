@@ -49,15 +49,15 @@
 </head>
 <body>
 
-    {{-- Include Navbar --}}
+    {{-- Navbar --}}
     @include('template.navigation')
 
-    {{-- Main Content --}}
+    {{-- Content --}}
     <main>
         @yield('content')
     </main>
 
-    {{-- Include Footer --}}
+    {{-- Footer --}}
     @include('template.footer')
 
     <!-- Bootstrap JS -->
