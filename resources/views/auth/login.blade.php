@@ -1,67 +1,85 @@
-<x-guest-layout>
-    <div class="text-center mb-8">
-        <h1 class="text-3xl font-extrabold text-red-600">Selamat Datang di Sportykuy</h1>
-        <p class="text-gray-500 mt-2">Masuk untuk melanjutkan booking lapanganmu!</p>
-    </div>
+@extends('layouts.app')
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+@section('content')
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="text-center mb-5">
+                <h1 class="fw-bold text-brand display-5">Masuk</h1>
+                <p class="text-muted">Masuk untuk melanjutkan booking lapanganmu!</p>
+            </div>
 
-    <form method="POST" action="{{ route('login') }}" class="space-y-6">
-        @csrf
-
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" class="text-gray-700 font-semibold" />
-            <x-text-input id="email"
-                          class="block mt-1 w-full border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-lg shadow-sm"
-                          type="email"
-                          name="email"
-                          :value="old('email')"
-                          required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2 text-red-600" />
-        </div>
-
-        <!-- Password -->
-        <div>
-            <x-input-label for="password" :value="__('Password')" class="text-gray-700 font-semibold" />
-            <x-text-input id="password"
-                          class="block mt-1 w-full border-gray-300 focus:border-red-500 focus:ring-red-500 rounded-lg shadow-sm"
-                          type="password"
-                          name="password"
-                          required autocomplete="current-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2 text-red-600" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="flex items-center justify-between">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox"
-                       class="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                       name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Ingat saya') }}</span>
-            </label>
-
-            @if (Route::has('password.request'))
-                <a class="text-sm text-red-600 hover:underline"
-                   href="{{ route('password.request') }}">
-                    {{ __('Lupa password?') }}
-                </a>
+            <!-- ✅ Session Status -->
+            @if (session('status'))
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('status') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             @endif
-        </div>
 
-        <!-- Login Button -->
-        <div class="pt-2">
-            <button type="submit"
-                    class="w-full bg-red-600 text-white font-semibold py-2.5 rounded-lg shadow-md hover:bg-red-700 transition duration-200">
-                {{ __('Masuk') }}
-            </button>
-        </div>
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ route('login') }}">
+                        @csrf
 
-        <!-- Register Redirect -->
-        <div class="text-center text-sm text-gray-600 mt-6">
-            Belum punya akun?
-            <a href="{{ route('register') }}" class="text-red-600 font-semibold hover:underline">Daftar Sekarang</a>
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-medium">Email</label>
+                            <input type="email"
+                                   id="email"
+                                   name="email"
+                                   value="{{ old('email') }}"
+                                   class="form-control form-control-lg @error('email') is-invalid @enderror"
+                                   required autofocus>
+                            @error('email')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label fw-medium">Password</label>
+                            <input type="password"
+                                   id="password"
+                                   name="password"
+                                   class="form-control form-control-lg @error('password') is-invalid @enderror"
+                                   required>
+                            @error('password')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <!-- Remember Me + Forgot Password -->
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                                <label class="form-check-label small text-muted" for="remember">
+                                    Ingat saya
+                                </label>
+                            </div>
+
+                            @if (Route::has('password.request'))
+                                <a class="small text-brand" href="{{ route('password.request') }}">
+                                    <i class="fas fa-key me-1"></i> Lupa password?
+                                </a>
+                            @endif
+                        </div>
+
+                        <!-- Tombol Login -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-brand btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i> Masuk
+                            </button>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <span class="text-muted">Belum punya akun?</span>
+                            <a href="{{ route('register') }}" class="text-brand fw-bold ms-1">Daftar Sekarang</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-    </form>
-</x-guest-layout>
+    </div>
+</div>
+@endsection
