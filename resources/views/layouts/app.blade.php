@@ -25,7 +25,6 @@
             font-weight: 700;
         }
 
-        /* 🔴 Warna brand: #D85C5C */
         .bg-brand {
             background-color: #D85C5C !important;
         }
@@ -71,7 +70,6 @@
             color: rgba(255, 255, 255, 0.9) !important;
         }
 
-        /* Hero section (opsional untuk halaman utama) */
         .hero-section {
             background-color: #D85C5C;
             color: white;
@@ -89,6 +87,65 @@
             font-size: 0.9rem;
             border-top: 1px solid #ddd;
         }
+
+        .section-kabur {
+            background-color: #D85C5C;
+            color: white;
+            padding: 4rem 0;
+        }
+        .section-kabur h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn-view-more {
+            background-color: #fff;
+            color: #D85C5C;
+            border: 2px solid #D85C5C;
+            border-radius: 20px;
+            padding: 0.6rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-view-more:hover {
+            background-color: #D85C5C;
+            color: white;
+        }
+
+        .field-card {
+    background-color: #FF7A3F;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+.field-card:hover {
+    transform: translateY(-5px);
+}
+
+.btn-brand {
+    background-color: #D85C5C;
+    border-color: #D85C5C;
+    color: white;
+    border-radius: 100px;
+    font-weight: 600;
+}
+.btn-brand:hover {
+    background-color: #c24a4a;
+}
+
+.btn-outline-brand {
+    color: #D85C5C;
+    border-color: #D85C5C;
+    border-radius: 100px;
+    font-weight: 600;
+}
+.btn-outline-brand:hover {
+    background-color: #D85C5C;
+    color: white;
+}
+
+.text-primary { color: #0040ff !important; }
     </style>
 
     <!-- AlpineJS (opsional, untuk dropdown jika tetap pakai) -->
@@ -163,7 +220,7 @@
 
     {{-- Footer --}}
     <footer>
-        <p class="mb-0">&copy; {{ date('Y') }} Sportykuy. Semua hak dilindungi.</p>
+        <p class="mb-0">&copy; {{ date('Y') }} Sportykuy. SMKN 1 Kota Bekasi UKOM RPL A 27.</p>
     </footer>
 
     <!-- Bootstrap JS (wajib untuk dropdown, navbar toggle) -->
