@@ -104,11 +104,6 @@
         </div>
     </section>
 
-    <!-- ⚪ Footer -->
-    <footer class="bg-white text-gray-600 text-center py-6 border-t">
-        <p>© 2025 Sportykuy. Semua hak dilindungi.</p>
-    </footer>
-
 </div>
 
 <!-- 🎬 Animasi -->
