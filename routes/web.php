@@ -6,7 +6,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\LapanganController;
 use App\Models\Lapangan;
 use App\Http\Controllers\ProductController;
-
+use App\Http\Controllers\VoucherController;
 
 // ===============================
 // HALAMAN UTAMA
@@ -46,23 +46,44 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/booking/{id}', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/booking/{id}', [BookingController::class, 'store'])->name('booking.store');
 
-    // Lihat daftar lapangan
+    // Daftar lapangan
     Route::get('/lapangan', [LapanganController::class, 'index'])->name('lapangan.index');
 
-    // Daftar mitra
+    // Register mitra
     Route::get('/daftar-mitra', [ProfileController::class, 'partnerForm'])->name('partner.form');
     Route::post('/daftar-mitra', [ProfileController::class, 'registerPartner'])->name('partner.register');
 
-    // Produk manage partner
+    // Produk milik Partner
     Route::get('/partner/products', [ProductController::class, 'manage'])->name('products.manage');
     Route::get('/partner/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::post('/partner/products', [ProductController::class, 'store'])->name('products.store');
 
-    // EDIT / UPDATE / DELETE harus pakai parameter {product}
     Route::get('/partner/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/partner/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/partner/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 });
+
+
+// ===============================
+// VOUCHER ROUTES
+// ===============================
+
+// Semua orang bisa lihat
+Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers.index');
+
+// Admin & Partner
+Route::middleware(['auth'])->group(function () {
+
+    Route::get('/vouchers/create', [VoucherController::class, 'create'])->name('vouchers.create');
+    Route::post('/vouchers', [VoucherController::class, 'store'])->name('vouchers.store');
+
+    Route::get('/vouchers/{voucher}/edit', [VoucherController::class, 'edit'])->name('vouchers.edit');
+    Route::put('/vouchers/{voucher}', [VoucherController::class, 'update'])->name('vouchers.update');
+    Route::delete('/vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
+});
+
+// User pakai voucher
+Route::post('/voucher/{voucher}/use', [VoucherController::class, 'use'])->name('vouchers.use');
 
 
 // ===============================

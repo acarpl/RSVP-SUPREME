@@ -25,7 +25,7 @@
             <div class="carousel-caption d-none d-md-block">
                 <h2 class="text-white fw-bold">Diskon Hingga 50%</h2>
                 <p class="fs-5">Gunakan voucher eksklusif untuk booking lapangan favoritmu.</p>
-                <a href="#" class="btn btn-outline-light btn-lg rounded-pill px-4">Lihat Voucher</a>
+                <a href="{{ route('vouchers.index') }}" class="btn btn-outline-light btn-lg rounded-pill px-4">Lihat Voucher</a>
             </div>
         </div>
 
@@ -35,7 +35,7 @@
             <div class="carousel-caption d-none d-md-block">
                 <h2 class="text-white fw-bold">Merchandise Resmi</h2>
                 <p class="fs-5">Jersey, bola, tas — semuanya original!</p>
-                <a href="#" class="btn btn-light btn-lg rounded-pill px-4">Belanja Sekarang</a>
+                <a href="{{ route('produk.kategori') }}" class="btn btn-light btn-lg rounded-pill px-4">Belanja Sekarang</a>
             </div>
         </div>
     </div>
