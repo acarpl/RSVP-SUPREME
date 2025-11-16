@@ -7,6 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    /** @use HasFactory<\Database\Factories\ProductFactory> */
+    protected $fillable = [
+        'partner_id',
+        'name',
+        'description',
+        'price',
+        'category',
+        'stock',
+        'image',
+    ];
+
+    public function partner()
+    {
+        return $this->belongsTo(User::class, 'partner_id');
+    }
     use HasFactory;
 }

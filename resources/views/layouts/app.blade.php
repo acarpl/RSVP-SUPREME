@@ -166,10 +166,10 @@
                         <a class="nav-link" href="/">Beranda</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#lapangan">Lapangan</a>
+                        <a class="nav-link" href="/lapangan">Lapangan</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#produk">Produk</a>
+                        <a class="nav-link" href="/produk">Produk</a>
                     </li>
 
                     @guest
