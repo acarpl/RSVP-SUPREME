@@ -166,14 +166,3 @@ Open-source for personal and educational use.
 ```
 
 ---
-
-Kalau King Rasya mau, Wancuy bisa tambah:
-
-✅ Banner header aesthetic  
-✅ Screenshot tampilan  
-✅ Badges GitHub (stars, issues, tech stack)  
-✅ Flowchart / ERD sederhana  
-✅ Dokumentasi API kalau ada  
-
-Mau ditambahin yang mana, King? 👑✨
-```
