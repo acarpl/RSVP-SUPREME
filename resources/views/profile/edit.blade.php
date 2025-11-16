@@ -29,6 +29,7 @@
 
                 {{-- Tombol Gabung Mitra --}}
                 @if(auth()->user()->role == 'customer')
+                    <!-- ROUTE GAK KETEMU DUL -->
                     <form action="{{ route('gabung.mitra') }}" method="POST" class="mt-4">
                         @csrf
                         <button 

@@ -90,7 +90,7 @@ class ProductController extends Controller
     public function edit(Product $product)
     {
         $this->authorizeProduct($product);
-        return view('products.edit', compact('product'));
+        return view('produk.edit', compact('product'));
     }
 
     // Update produk
