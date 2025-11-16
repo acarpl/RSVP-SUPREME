@@ -12,7 +12,7 @@
             <p class="text-lg md:text-xl mb-8 opacity-90 font-light">
                 Cari, pesan, dan main bareng teman di <span class="font-semibold">Sportykuy ⚽🏸🏀</span>
             </p>
-            <a href="#booking-section"
+            <a href="{{ route('booking.index') }}"
                class="bg-white text-red-600 px-8 py-3 rounded-full font-semibold shadow-md hover:bg-gray-100 hover:scale-105 transition duration-300">
                Pesan Sekarang
             </a>
@@ -45,7 +45,7 @@
                     <div class="p-6">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">Lapangan Futsal</h3>
                         <p class="text-sm text-gray-500 mb-5">Main bareng teman dengan lapangan futsal indoor berstandar tinggi!</p>
-                        <a href="#" class="bg-red-600 text-white px-6 py-2 rounded-full text-sm font-semibold hover:bg-red-700 transition">
+                        <a href="{{ route('booking.index') }}" class="bg-red-600 text-white px-6 py-2 rounded-full text-sm font-semibold hover:bg-red-700 transition">
                             Pesan Sekarang
                         </a>
                     </div>
@@ -58,9 +58,10 @@
                     <div class="p-6">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">Lapangan Badminton</h3>
                         <p class="text-sm text-gray-500 mb-5">Tunjukkan smash terbaikmu di lapangan badminton profesional.</p>
-                        <a href="#" class="bg-red-600 text-white px-6 py-2 rounded-full text-sm font-semibold hover:bg-red-700 transition">
-                            Pesan Sekarang
-                        </a>
+                       <a href="{{ route('booking.index') }}"
+   class="bg-white text-red-600 px-6 py-3 rounded-full font-semibold shadow-md hover:bg-gray-100 transition">
+    Pesan Sekarang
+</a>
                     </div>
                 </div>
 
@@ -71,8 +72,9 @@
                     <div class="p-6">
                         <h3 class="text-xl font-semibold text-gray-800 mb-2">Lapangan Basket</h3>
                         <p class="text-sm text-gray-500 mb-5">Ayo tunjukkan kemampuan dribble dan shooting-mu!</p>
-                        <a href="#" class="bg-red-600 text-white px-6 py-2 rounded-full text-sm font-semibold hover:bg-red-700 transition">
-                            Pesan Sekarang
+                        <a href="{{ route('booking.index') }}"
+                         class="bg-white text-red-600 px-6 py-3 rounded-full font-semibold shadow-md hover:bg-gray-100 transition">
+                             Pesan Sekarang
                         </a>
                     </div>
                 </div>

@@ -14,8 +14,9 @@
             <div class="carousel-caption d-none d-md-block">
                 <h2 class="text-white fw-bold">Booking Lapangan Mudah!</h2>
                 <p class="fs-5">Cari, pesan, main — semua dalam satu aplikasi.</p>
-                <a href="#" class="btn btn-light btn-lg rounded-pill px-4">Pesan Sekarang</a>
+                <a href="{{ route('booking.index') }}" class="btn btn-light btn-lg rounded-pill px-4">Pesan Sekarang</a>
             </div>
+            
         </div>
 
         <!-- Slide 2 -->

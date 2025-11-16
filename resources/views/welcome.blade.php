@@ -44,7 +44,7 @@
                     <div class="col-md-4">
                         @component('components.field-card', $field)
                             <div class="d-grid gap-2 mt-2">
-                                <a href="#" class="btn btn-sm btn-brand">
+                                <a href="" class="btn btn-sm btn-brand">
                                     <i class="fas fa-calendar-check me-1"></i> Booking
                                 </a>
                             </div>
@@ -55,7 +55,7 @@
 
             {{-- 🔘 Tombol View More --}}
             <div class="text-center mt-4">
-                <a href="#" class="btn btn-view-more px-4 py-2">
+                <a href="{{ route('lapangan.index') }}" class="btn btn-view-more px-4 py-2">
                     <i class="fas fa-arrow-right me-1"></i> Lihat Semua
                 </a>
             </div>
@@ -109,9 +109,38 @@
                             </div>
                         </div>
                     </div>
-                    <a href="#" class="btn btn-brand">
-                        <i class="fas fa-users me-1"></i> Gabung Jadi Mitra
-                    </a>
+                    <div class="mt-3">
+    @auth
+        {{-- User Customer → tawarkan Gabung Mitra --}}
+        @if (auth()->user()->role === 'customer')
+            <form action="{{ route('partner.form') }}" method="POST">
+                @csrf
+                <button type="submit" class="btn btn-brand px-4 py-2">
+                    <i class="fas fa-users me-1"></i> Gabung Jadi Mitra
+                </button>
+            </form>
+
+        {{-- User Partner → tampilkan tombol kelola lapangan --}}
+        @elseif(auth()->user()->role === 'partner')
+            <a href="{{ route('lapangan.index') }}" class="btn btn-success px-4 py-2">
+                <i class="fas fa-edit me-1"></i> Kelola Lapangan Saya
+            </a>
+
+        {{-- Super Admin → akses admin panel --}}
+        @elseif(auth()->user()->role === 'super_admin')
+            <a href="{{ route('lapangan.index') }}" class="btn btn-dark px-4 py-2">
+                <i class="fas fa-tools me-1"></i> Admin Panel Lapangan
+            </a>
+        @endif
+
+    @else
+        {{-- Belum login --}}
+        <a href="{{ route('login') }}" class="btn btn-brand px-4 py-2">
+            <i class="fas fa-sign-in-alt me-1"></i> Login untuk Menjadi Mitra
+        </a>
+    @endauth
+
+</div>
                 </div>
             </div>
         </div>

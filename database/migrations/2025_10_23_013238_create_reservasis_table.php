@@ -6,20 +6,26 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('reservasis', function (Blueprint $table) {
             $table->id();
+
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('lapangan_id');
+
+            $table->date('tanggal');
+            $table->time('jam_mulai');
+            $table->time('jam_selesai');
+
             $table->timestamps();
+
+            // Foreign keys (opsional)
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('lapangan_id')->references('id')->on('lapangans')->onDelete('cascade');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('reservasis');

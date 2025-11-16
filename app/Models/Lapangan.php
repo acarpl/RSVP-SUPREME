@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Lapangan extends Model
 {
-    /** @use HasFactory<\Database\Factories\LapanganFactory> */
-    use HasFactory;
+    protected $fillable = [
+        'nama',
+        'lokasi',
+        'kapasitas',
+        'harga',
+        'gambar'
+    ];
+
 }
