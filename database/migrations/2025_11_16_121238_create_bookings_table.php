@@ -11,20 +11,18 @@ return new class extends Migration
      */
     public function up()
 {
-    Schema::create('bookings', function (Blueprint $table) {
+   Schema::create('bookings', function (Blueprint $table) {
         $table->id();
-        $table->unsignedBigInteger('user_id');
-        $table->decimal('subtotal', 12, 2);
-        $table->decimal('discount', 12, 2)->default(0);
-        $table->decimal('total', 12, 2);
-        $table->unsignedBigInteger('voucher_id')->nullable();
-        $table->string('status')->default('pending'); // pending, paid, cancelled
-        $table->text('meta')->nullable(); // json for additional info (jadwal, phone, etc)
+        $table->foreignId('user_id')->constrained()->onDelete('cascade');
+        $table->foreignId('lapangan_id')->constrained()->onDelete('cascade');
+        $table->dateTime('start_time');
+        $table->dateTime('end_time');
+        $table->integer('duration_hours');
+        $table->bigInteger('total_price');
+        $table->enum('status', ['pending', 'confirmed', 'completed', 'cancelled'])->default('pending');
         $table->timestamps();
-
-        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-        $table->foreign('voucher_id')->references('id')->on('vouchers')->nullOnDelete();
     });
+
 }
 
 

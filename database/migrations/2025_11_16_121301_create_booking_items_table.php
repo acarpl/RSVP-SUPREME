@@ -11,17 +11,14 @@ return new class extends Migration
      */
     public function up()
 {
-    Schema::create('booking_items', function (Blueprint $table) {
+   Schema::create('booking_items', function (Blueprint $table) {
         $table->id();
-        $table->unsignedBigInteger('booking_id');
-        $table->unsignedBigInteger('item_id'); // product or lapangan id
-        $table->string('item_type');           // 'product' or 'lapangan'
-        $table->integer('qty')->default(1);
-        $table->decimal('price', 12, 2);
-        $table->text('meta')->nullable(); // e.g. jam main
-        $table->timestamps();
-
-        $table->foreign('booking_id')->references('id')->on('bookings')->onDelete('cascade');
+        $table->foreignId('booking_id')->constrained()->onDelete('cascade');
+        $table->string('type'); // 'lapangan' atau 'product'
+        $table->morphs('bookable'); // untuk relasi polymorphic
+        $table->string('name');
+        $table->bigInteger('price');
+        $table->integer('quantity')->default(1);
     });
 }
 

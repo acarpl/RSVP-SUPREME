@@ -4,35 +4,29 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\LapanganController;
-use App\Models\Lapangan;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\CartController;
+use App\Models\Lapangan;
 
 // ===============================
-// HALAMAN UTAMA
+// HALAMAN UTAMA (SEMUA ORANG)
 // ===============================
 Route::get('/', function () {
     $lapangans = Lapangan::all();
     return view('welcome', compact('lapangans'));
 })->name('home');
 
-
-// ===============================
-// PRODUK UNTUK USER (TANPA LOGIN)
-// ===============================
+// Produk & Voucher (publik)
+ Route::resource('vouchers', \App\Http\Controllers\VoucherController::class);
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers.index');
 
-Route::get('/produk', function () {
-    return view('produk.kategori');
-})->name('produk.kategori');
-
-Route::get('/produk/alat', [ProductController::class, 'alat'])->name('produk.alat');
-Route::get('/produk/makanan', [ProductController::class, 'makanan'])->name('produk.makanan');
 
 
 // ===============================
-// AUTH USER ROUTES
+// AUTHENTICATED USER (LOGIN)
 // ===============================
 Route::middleware(['auth'])->group(function () {
 
@@ -41,64 +35,68 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Booking
-    Route::get('/booking', [BookingController::class, 'index'])->name('booking.index');
-    Route::get('/booking/{id}', [BookingController::class, 'create'])->name('booking.create');
-    Route::post('/booking/{id}', [BookingController::class, 'store'])->name('booking.store');
-
     // Daftar lapangan
     Route::get('/lapangan', [LapanganController::class, 'index'])->name('lapangan.index');
 
-    // Register mitra
+    // Daftar jadi mitra
     Route::get('/daftar-mitra', [ProfileController::class, 'partnerForm'])->name('partner.form');
     Route::post('/daftar-mitra', [ProfileController::class, 'registerPartner'])->name('partner.register');
 
-    // Produk milik Partner
-    Route::get('/partner/products', [ProductController::class, 'manage'])->name('products.manage');
-    Route::get('/partner/products/create', [ProductController::class, 'create'])->name('products.create');
-    Route::post('/partner/products', [ProductController::class, 'store'])->name('products.store');
+    // BOOKING ROUTES — DIPINDAH KE SINI (TANPA DUPLIKASI)
+    Route::prefix('booking')->name('booking.')->group(function () {
+        Route::get('/', [BookingController::class, 'index'])->name('index');
+        Route::get('/lapangan/{lapanganId}/order-now', [BookingController::class, 'orderNow'])->name('order-now');
+        Route::post('/lapangan/{lapanganId}/order-now', [BookingController::class, 'storeOrderNow'])->name('store-order-now');
+        Route::get('/from-cart', [BookingController::class, 'createFromCart'])->name('from-cart');
+        Route::post('/from-cart', [BookingController::class, 'storeFromCart'])->name('store-from-cart');
+        Route::get('/{booking}/checkout', [BookingController::class, 'checkout'])->name('checkout');
+        Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
+        Route::post('/{booking}/confirm', [BookingController::class, 'confirm'])->name('confirm');
+    });
 
-    Route::get('/partner/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
-    Route::put('/partner/products/{product}', [ProductController::class, 'update'])->name('products.update');
-    Route::delete('/partner/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
+    // Produk — hanya partner
+    Route::prefix('partner/products')->name('products.')->group(function () {
+        Route::get('/', [ProductController::class, 'manage'])->name('manage');
+        Route::get('/create', [ProductController::class, 'create'])->name('create');
+        Route::post('/', [ProductController::class, 'store'])->name('store');
+        Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
+        Route::put('/{product}', [ProductController::class, 'update'])->name('update');
+        Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+    });
+
+    // Voucher
+    Route::post('/voucher/{voucher}/use', [VoucherController::class, 'use'])->name('vouchers.use');
+    Route::prefix('vouchers')->name('vouchers.')->group(function () {
+        Route::get('/create', [VoucherController::class, 'create'])->name('create');
+        Route::post('/', [VoucherController::class, 'store'])->name('store');
+        Route::get('/{voucher}/edit', [VoucherController::class, 'edit'])->name('edit');
+        Route::put('/{voucher}', [VoucherController::class, 'update'])->name('update');
+        Route::delete('/{voucher}', [VoucherController::class, 'destroy'])->name('destroy');
+    });
 });
-
-
-// ===============================
-// VOUCHER ROUTES
-// ===============================
-
-// Semua orang bisa lihat
-Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers.index');
-
-// Admin & Partner
-Route::middleware(['auth'])->group(function () {
-
-    Route::get('/vouchers/create', [VoucherController::class, 'create'])->name('vouchers.create');
-    Route::post('/vouchers', [VoucherController::class, 'store'])->name('vouchers.store');
-
-    Route::get('/vouchers/{voucher}/edit', [VoucherController::class, 'edit'])->name('vouchers.edit');
-    Route::put('/vouchers/{voucher}', [VoucherController::class, 'update'])->name('vouchers.update');
-    Route::delete('/vouchers/{voucher}', [VoucherController::class, 'destroy'])->name('vouchers.destroy');
-});
-
-// User pakai voucher
-Route::post('/voucher/{voucher}/use', [VoucherController::class, 'use'])->name('vouchers.use');
-
 
 // ===============================
 // PARTNER & SUPER ADMIN ONLY
 // ===============================
-Route::middleware(['auth', 'role:super_admin,partner'])->group(function () {
-
-    Route::get('/lapangan/create', [LapanganController::class, 'create'])->name('lapangan.create');
-    Route::post('/lapangan', [LapanganController::class, 'store'])->name('lapangan.store');
-
-    Route::get('/lapangan/{lapangan}/edit', [LapanganController::class, 'edit'])->name('lapangan.edit');
-    Route::put('/lapangan/{lapangan}', [LapanganController::class, 'update'])->name('lapangan.update');
-
-    Route::delete('/lapangan/{lapangan}', [LapanganController::class, 'destroy'])->name('lapangan.destroy');
+Route::middleware(['auth', 'role:super_admin,partner'])->prefix('admin')->group(function () {
+    Route::prefix('lapangan')->name('lapangan.')->group(function () {
+        Route::get('/create', [LapanganController::class, 'create'])->name('create');
+        Route::post('/', [LapanganController::class, 'store'])->name('store');
+        Route::get('/{lapangan}/edit', [LapanganController::class, 'edit'])->name('edit');
+        Route::put('/{lapangan}', [LapanganController::class, 'update'])->name('update');
+        Route::delete('/{lapangan}', [LapanganController::class, 'destroy'])->name('destroy');
+    });
 });
 
+// ===============================
+// CART (SEMUA ORANG)
+// ===============================
+Route::prefix('cart')->name('cart.')->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('index');
+    Route::get('/count', [CartController::class, 'count'])->name('count');
+    Route::post('/add', [CartController::class, 'add'])->name('add');
+    Route::post('/remove', [CartController::class, 'remove'])->name('remove');
+    Route::post('/update', [CartController::class, 'update'])->name('update');
+});
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

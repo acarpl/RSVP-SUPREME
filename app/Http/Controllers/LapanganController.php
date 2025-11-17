@@ -31,6 +31,14 @@ class LapanganController extends Controller
             'cropped_gambar' => 'nullable|string', // base64
         ]);
 
+          $lapangan = new Lapangan();
+    $lapangan->nama = $request->nama; // ← pastikan ini ada
+    $lapangan->lokasi = $request->lokasi;
+    $lapangan->harga = $request->harga;
+    $lapangan->save();
+
+    return redirect()->route('lapangan.index');
+
         $path = null;
 
         if (!empty($validated['cropped_gambar'])) {

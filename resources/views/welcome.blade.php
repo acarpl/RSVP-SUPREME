@@ -44,9 +44,10 @@
                     <div class="col-md-4">
                         @component('components.field-card', $field)
                             <div class="d-grid gap-2 mt-2">
-                                <a href="" class="btn btn-sm btn-brand">
-                                    <i class="fas fa-calendar-check me-1"></i> Booking
-                                </a>
+                               <a href="{{ route('booking.order-now', ['lapanganId' => 1]) }}" 
+                                class="btn btn-sm btn-brand">
+                               <i class="fas fa-bolt me-1"></i> Order Sekarang
+                            </a>
                             </div>
                         @endcomponent
                     </div>
@@ -56,7 +57,7 @@
             {{-- 🔘 Tombol View More --}}
             <div class="text-center mt-4">
                 <a href="{{ route('lapangan.index') }}" class="btn btn-view-more px-4 py-2">
-                    <i class="fas fa-arrow-right me-1"></i> Lihat Semua
+                    <i class="fas fa-arrow-right me-1"></i> Pilih Lapangan Lain
                 </a>
             </div>
         </div>

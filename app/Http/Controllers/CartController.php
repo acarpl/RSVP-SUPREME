@@ -1,89 +1,130 @@
 <?php
+
 namespace App\Http\Controllers;
 
-use App\Models\Cart;
-use App\Models\CartItem;
-use App\Models\Voucher;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Arr;
 
 class CartController extends Controller
 {
     public function index()
     {
-        $cart = Cart::firstOrCreate(['user_id' => auth()->id]);
-        $cart->load('items');
+        $cart = session('cart', []);
+        $cart = $this->prepareCartData($cart);
         return view('cart.index', compact('cart'));
     }
 
-    public function add(Request $request)
-    {
-        $request->validate([
-            'item_id'=>'required|integer',
-            'type'=>'required|in:product,lapangan',
-            'price'=>'required|numeric',
-            'qty'=>'nullable|integer|min:1'
+public function add(Request $request)
+{
+    // ✅ Validasi ketat
+    $request->validate([
+        'product_id' => 'required|integer|min:1',
+        'name' => 'required|string|max:255',
+        'price' => 'required|numeric|min:0',
+        'quantity' => 'required|integer|min:1',
+    ]);
+
+    try {
+        // ✅ Ambil data lama
+        $cart = session('cart', []);
+        
+        // ✅ Pastikan $cart array
+        if (!is_array($cart)) {
+            $cart = [];
+        }
+
+        $id = (int) $request->product_id;
+
+        // ✅ Tambahkan ke cart
+        $cart[$id] = [
+            'id' => $id,
+            'name' => trim($request->name),
+            'price' => (float) $request->price,
+            'quantity' => (int) ($request->quantity ?? 1),
+            'created_at' => now()->toDateTimeString(),
+        ];
+
+        // ✅ Simpan
+        session(['cart' => $cart]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Produk ditambahkan',
+            'cart_count' => collect($cart)->sum('quantity')
         ]);
 
-        $cart = Cart::firstOrCreate(['user_id'=>auth()->id]);
+    } catch (\Exception $e) {
+        // ✅ Tangkap semua error
+        \Log::error('Cart add failed', [
+            'input' => $request->all(),
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => basename($e->getFile()),
+        ]);
 
-        // Jika item sudah ada di keranjang -> tambah qty
-        $existing = $cart->items()->where('item_id',$request->item_id)->where('item_type',$request->type)->first();
-        if ($existing) {
-            $existing->increment('qty', $request->qty ?? 1);
-        } else {
-            $cart->items()->create([
-                'item_id'=>$request->item_id,
-                'item_type'=>$request->type,
-                'qty'=>$request->qty ?? 1,
-                'price'=>$request->price,
-            ]);
+        return response()->json([
+            'success' => false,
+            'error' => 'Gagal menambahkan ke keranjang',
+            'debug' => app()->isLocal() ? $e->getMessage() : null
+        ], 500);
+    }
+}
+    public function remove(Request $request)
+    {
+        $request->validate(['product_id' => 'required|integer']);
+        
+        $cart = session('cart', []);
+        unset($cart[$request->product_id]);
+        session(['cart' => $cart]);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function update(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|integer',
+            'action' => 'required|in:increase,decrease'
+        ]);
+
+        $cart = session('cart', []);
+        $id = $request->product_id;
+
+        if (!isset($cart[$id])) {
+            return response()->json(['success' => false, 'error' => 'Produk tidak ditemukan']);
         }
 
-        $cart->updateTotal();
-
-        return back()->with('success','Berhasil ditambahkan ke keranjang');
-    }
-
-    public function update(Request $request, CartItem $item)
-    {
-        $request->validate(['qty'=>'required|integer|min:1']);
-        $item->update(['qty'=>$request->qty]);
-        $item->cart->updateTotal();
-        return back()->with('success','Jumlah berhasil diupdate');
-    }
-
-    public function remove(CartItem $item)
-    {
-        $cart = $item->cart;
-        $item->delete();
-        $cart->updateTotal();
-        return back()->with('success','Item dihapus');
-    }
-
-    public function applyVoucher(Request $request)
-    {
-        $request->validate(['code'=>'required|string']);
-        $voucher = Voucher::where('code', $request->code)->first();
-        if (!$voucher) return back()->with('error','Voucher tidak ditemukan');
-        if ($voucher->expires_at && now()->gt($voucher->expires_at)) return back()->with('error','Voucher expired');
-        if ($voucher->quota !== null && $voucher->quota <= 0) return back()->with('error','Voucher sudah habis');
-
-        $cart = Cart::firstOrCreate(['user_id'=>auth()->id]);
-        $cart->voucher_id = $voucher->id;
-        $cart->discount = $voucher->calculateDiscount($cart->total);
-        $cart->save();
-
-        return back()->with('success','Voucher diterapkan');
-    }
-
-    public function clear()
-    {
-        $cart = Cart::where('user_id', auth()->id)->first();
-        if ($cart) {
-            $cart->items()->delete();
-            $cart->delete();
+        if ($request->action === 'increase') {
+            $cart[$id]['quantity']++;
+        } elseif ($request->action === 'decrease') {
+            if ($cart[$id]['quantity'] > 1) {
+                $cart[$id]['quantity']--;
+            } else {
+                unset($cart[$id]);
+            }
         }
-        return back()->with('success','Keranjang dikosongkan');
+
+        session(['cart' => $cart]);
+        return response()->json(['success' => true, 'cart' => $this->prepareCartData($cart)]);
+    }
+
+    public function count()
+    {
+        $cart = session('cart', []);
+        $cart = $this->prepareCartData($cart);
+        
+        $totalItems = collect($cart)->sum('quantity');
+        $totalPrice = collect($cart)->sum(fn($item) => $item['price'] * $item['quantity']);
+
+        return response()->json([
+            'total_items' => $totalItems,
+            'total_price' => $totalPrice,
+            'items' => $cart,
+        ]);
+    }
+
+    private function prepareCartData($cart)
+    {
+        return array_values($cart);
     }
 }

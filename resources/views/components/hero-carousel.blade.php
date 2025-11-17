@@ -35,7 +35,7 @@
             <div class="carousel-caption d-none d-md-block">
                 <h2 class="text-white fw-bold">Merchandise Resmi</h2>
                 <p class="fs-5">Jersey, bola, tas — semuanya original!</p>
-                <a href="{{ route('produk.kategori') }}" class="btn btn-light btn-lg rounded-pill px-4">Belanja Sekarang</a>
+                <a href="{{ route('products.index') }}" class="btn btn-light btn-lg rounded-pill px-4">Belanja Sekarang</a>
             </div>
         </div>
     </div>
