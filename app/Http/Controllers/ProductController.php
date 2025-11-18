@@ -81,7 +81,7 @@ class ProductController extends Controller
             'image' => $imagePath
         ]);
 
-        return redirect()->route('products.manage')->with('success', 'Produk berhasil ditambahkan!');
+        return redirect()->route('partner.products.manage')->with('success', 'Produk berhasil ditambahkan!');
     }
 
     // ============================
@@ -122,7 +122,7 @@ class ProductController extends Controller
             'image' => $imagePath
         ]);
 
-        return redirect()->route('products.manage')->with('success', 'Produk berhasil diperbarui!');
+        return redirect()->route('partner.products.manage')->with('success', 'Produk berhasil diperbarui!');
     }
 
     // ============================

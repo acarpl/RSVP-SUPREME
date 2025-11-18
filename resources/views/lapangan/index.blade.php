@@ -11,7 +11,7 @@
         {{-- ✅ Tampilkan tombol hanya untuk partner/superadmin yang sudah login --}}
         @auth
             @if(in_array(auth()->user()->role, ['partner', 'super_admin']))
-                <a href="{{ route('lapangan.create') }}" class="btn btn-brand px-4 py-2 mt-3 mt-md-0">
+                <a href="{{ route('partner.lapangan.create') }}" class="btn btn-brand px-4 py-2 mt-3 mt-md-0">
                     <i class="fas fa-plus me-1"></i> Tambah Lapangan
                 </a>
             @endif
@@ -117,7 +117,7 @@
 
             @auth
                 @if(in_array(auth()->user()->role, ['partner', 'super_admin']))
-                    <a href="{{ route('lapangan.create') }}" class="btn btn-brand px-4 py-2">
+                    <a href="{{ route('partner.lapangan.create') }}" class="btn btn-brand px-4 py-2">
                         <i class="fas fa-plus me-1"></i> Tambah Lapangan
                     </a>
                 @endif

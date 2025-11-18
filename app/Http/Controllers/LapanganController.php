@@ -17,7 +17,7 @@ class LapanganController extends Controller
 
     public function create()
     {
-        return view('lapangan.create');
+        return view('partner.lapangan.create');
     }
 
     // Menyimpan lapangan baru, menerima cropped_gambar (base64) dari form

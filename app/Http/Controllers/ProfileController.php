@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Schema;
+
 
 class ProfileController extends Controller
 {
@@ -88,37 +90,67 @@ class ProfileController extends Controller
     /**
      * Menampilkan form pendaftaran mitra.
      */
-    public function partnerForm()
-    {
-        return view('profile.daftar-mitra');
+   public function partnerForm()
+{
+    // Pastikan hanya pengguna yang login bisa mengakses (route sudah protected by auth)
+    return view('profile.daftar_mitra');
+}
+
+/**
+ * Proses registrasi mitra lewat form.
+ */
+public function registerPartner(Request $request)
+{
+    $request->validate([
+        'nama_usaha'   => 'required|string|max:255',
+        'alamat_usaha' => 'required|string|max:1000',
+        'telepon'      => 'nullable|string|max:30',
+    ]);
+
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+
+    if (!$user) {
+        return redirect()->route('login');
     }
 
-    /**
-     * Proses registrasi mitra lewat form.
-     */
-    public function registerPartner(Request $request)
-    {
-        $request->validate([
-            'nama_usaha'   => 'required|string|max:255',
-            'alamat_usaha' => 'required|string',
-        ]);
-
-        $user = Auth::user();
-
-        // Jika bukan customer, tidak boleh daftar ulang
-        if (!in_array($user->role, ['customer'])) {
-            return back()->with('info', 'Anda sudah terdaftar sebagai mitra.');
-        }
-
-        // Update role user
-        $user->update([
-            'role' => 'partner',
-        ]);
-
-        // Jika ingin menyimpan data usaha, bisa simpan ke tabel lain di sini
-
-        return redirect()
-            ->route('profile.edit')
-            ->with('success', 'Selamat! Pendaftaran Mitra Berhasil, akun Anda kini adalah Partner.');
+    // Jika bukan customer, tidak boleh daftar ulang
+    if ($user->role !== 'customer') {
+        return back()->with('info', 'Anda sudah terdaftar sebagai mitra.');
     }
+
+    // Update role dan simpan data usaha sederhana ke kolom yang ada
+    $user->role = 'partner';
+    // simpan phone/address ke kolom existing (pastikan kolom ada di migration)
+    if ($request->filled('telepon')) {
+        $user->phone = $request->telepon;
+    }
+    if ($request->filled('alamat_usaha')) {
+        $user->address = $request->alamat_usaha;
+    }
+    // jika ingin menyimpan nama usaha, pastikan kolom 'nama_usaha' ada; jika tidak, simpan di profile lain
+    if (Schema::hasColumn('users', 'is_partner')) {
+    // Kolom ada → update
+    $request->user()->update([
+        'is_partner' => true,
+        'partner_status' => 'pending'
+    ]);
+}
+
+    $user->save();
+
+    return redirect()
+        ->route('profile.edit')
+        ->with('success', 'Selamat! Pendaftaran Mitra Berhasil, akun Anda kini adalah Partner.');
+}
+
+public function leavePartner()
+{
+    $user = auth()->user();
+    $user->role = 'customer';
+    $user->save();
+
+    return redirect()->route('home')->with('success', 'Berhasil keluar dari partner.');
+}
+
 }

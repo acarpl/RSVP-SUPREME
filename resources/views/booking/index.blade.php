@@ -4,7 +4,7 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="fw-bold text-brand">Booking Saya</h1>
-        <a href="{{ route('lapangan.index') }}" class="btn btn-outline-brand">
+        <a href="{{ route('partner.lapangan.index') }}" class="btn btn-outline-brand">
             <i class="fas fa-futbol me-1"></i> Booking Baru
         </a>
     </div>
@@ -61,7 +61,7 @@
             </div>
             <h3 class="fw-bold text-muted mb-2">Belum Ada Booking</h3>
             <p class="text-muted mb-4">Mari mulai booking lapangan favoritmu!</p>
-            <a href="{{ route('lapangan.index') }}" class="btn btn-brand px-4 py-2">
+            <a href="{{ route('partner.lapangan.index') }}" class="btn btn-brand px-4 py-2">
                 <i class="fas fa-futbol me-1"></i> Cari Lapangan
             </a>
         </div>

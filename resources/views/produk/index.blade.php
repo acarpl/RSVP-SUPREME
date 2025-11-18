@@ -10,7 +10,7 @@
 
         {{-- ✅ Hanya tampilkan tombol "Tambah" untuk partner --}}
         @if(auth()->check() && auth()->user()->role === 'partner')
-            <a href="{{ route('products.create') }}" class="btn btn-brand px-4 py-2 mt-3 mt-md-0">
+            <a href="{{ route('partner.products.create') }}" class="btn btn-brand px-4 py-2 mt-3 mt-md-0">
                 <i class="fas fa-plus me-1"></i> Tambah Produk
             </a>
         @endif
@@ -88,12 +88,12 @@
                                 <div class="d-flex gap-2">
                                     @if(auth()->check() && in_array(auth()->user()->role, ['partner', 'super_admin']))
                                         {{-- Partner/Super Admin: edit & hapus --}}
-                                        <a href="{{ route('products.edit', $product->id) }}" 
+                                        <a href="{{ route('partner.products.edit', $product->id) }}" 
                                            class="btn btn-outline-brand flex-fill" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         
-                                        <form action="{{ route('products.destroy', $product->id) }}" 
+                                        <form action="{{ route('partner.products.destroy', $product->id) }}" 
                                               method="POST" class="flex-fill"
                                               onsubmit="return confirm('Yakin hapus {{ addslashes($product->name) }}?')">
                                             @csrf
@@ -146,7 +146,7 @@
             </p>
 
             @if(auth()->check() && in_array(auth()->user()->role, ['partner', 'super_admin']))
-                <a href="{{ route('products.create') }}" class="btn btn-brand px-4 py-2">
+                <a href="{{ route('partner.products.create') }}" class="btn btn-brand px-4 py-2">
                     <i class="fas fa-plus me-1"></i> Tambah Produk Pertama
                 </a>
             @endif

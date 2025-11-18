@@ -3,7 +3,7 @@
 @section('content')
 <div class="container py-4">
     <div class="d-flex align-items-center mb-4">
-        <a href="{{ route('lapangan.index') }}" class="btn btn-outline-brand rounded-circle me-3">
+        <a href="{{ route('partner.lapangan.index') }}" class="btn btn-outline-brand rounded-circle me-3">
             <i class="fas fa-arrow-left"></i>
         </a>
         <h1 class="fw-bold text-brand mb-0">Tambah Lapangan</h1>
@@ -11,7 +11,7 @@
 
     <div class="card border-0 shadow-sm rounded-3">
         <div class="card-body p-4">
-            <form action="{{ route('lapangan.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('partner.lapangan.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
                 <!-- Nama Lapangan -->
@@ -102,7 +102,7 @@
                     <button type="submit" class="btn btn-brand px-5 py-2">
                         <i class="fas fa-save me-2"></i> Simpan Lapangan
                     </button>
-                    <a href="{{ route('lapangan.index') }}" class="btn btn-outline-secondary px-4 py-2">
+                    <a href="{{ route('partner.lapangan.index') }}" class="btn btn-outline-secondary px-4 py-2">
                         <i class="fas fa-times me-1"></i> Batal
                     </a>
                 </div>

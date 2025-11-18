@@ -3,147 +3,149 @@
 @section('content')
 <div class="container-fluid px-0">
 
-    {{-- 🔁 Hero Carousel --}}
+    {{-- 🔁 HERO SLIDER --}}
     @include('components.hero-carousel')
 
-    {{-- 🟥 Section #Kaburajadulu (ramping) --}}
+    {{-- SECTION: #Kaburajadulu --}}
     <section id="kaburajadulu" class="section-kabur py-4">
         <div class="container">
             <div class="text-center mb-4">
                 <h2 class="fw-bold display-6">#Kaburajadulu</h2>
                 <p class="text-white opacity-90 mt-2">
-                    Capek kerja? Stres kuliah? Jangan diem di rumah!
+                    Capek kerja? Stres kuliah? Saatnya olahraga!
                 </p>
             </div>
 
-            {{-- 🏟 Grid Lapangan --}} 
+            {{-- 🔥 GRID LAPANGAN DINAMIS --}}
             <div class="row g-3 justify-content-center">
-                @foreach([
-                    [
-                        'title' => 'Futsal Arena',
-                        'location' => 'Kelapa Gading, Jakarta',
-                        'capacity' => '12 Orang',
-                        'price' => 'Rp 250.000 / Jam',
-                        'image' => 'https://placehold.co/400x250/0040ff/FFFFFF?text=Futsal&font=Plus+Jakarta+Sans'
-                    ],
-                    [
-                        'title' => 'Basket Court 3x3',
-                        'location' => 'BSD City, Tangerang',
-                        'capacity' => '6 Orang',
-                        'price' => 'Rp 180.000 / Jam',
-                        'image' => 'https://placehold.co/400x250/FF7A6F/FFFFFF?text=Basket&font=Plus+Jakarta+Sans'
-                    ],
-                    [
-                        'title' => 'Tennis Lapangan',
-                        'location' => 'Senayan, Jakarta',
-                        'capacity' => '4 Orang',
-                        'price' => 'Rp 500.000 / Jam',
-                        'image' => 'https://placehold.co/400x250/22c55e/FFFFFF?text=Tennis&font=Plus+Jakarta+Sans'
-                    ]
-                ] as $field)
+
+                @forelse($lapangan as $item)
                     <div class="col-md-4">
-                        @component('components.field-card', $field)
-                            <div class="d-grid gap-2 mt-2">
-                               <a href="{{ route('booking.order-now', ['lapanganId' => 1]) }}" 
-                                class="btn btn-sm btn-brand">
-                               <i class="fas fa-bolt me-1"></i> Order Sekarang
+
+                        @component('components.field-card')
+                            @slot('title', $item->nama)
+                            @slot('location', $item->lokasi)
+                            @slot('capacity', $item->kapasitas . ' Orang')
+                            @slot('price', 'Rp ' . number_format($item->harga_per_jam, 0, ',', '.') . ' / Jam')
+                            @slot('image', $item->gambar_url ?? asset('images/default-lapangan.jpg'))
+
+                            {{-- BUTTON BOOKING --}}
+                            <a href="{{ route('booking.order-now', $item->id) }}" 
+                                class="btn btn-primary w-100 mt-2">
+                                Booking Sekarang
                             </a>
-                            </div>
                         @endcomponent
+
                     </div>
-                @endforeach
+                @empty
+                    <div class="col-12 text-center text-white-50">
+                        <p>Belum ada lapangan yang tersedia.</p>
+                    </div>
+                @endforelse
+
             </div>
 
-            {{-- 🔘 Tombol View More --}}
+            {{-- BUTTON VIEW MORE --}}
             <div class="text-center mt-4">
-                <a href="{{ route('lapangan.index') }}" class="btn btn-view-more px-4 py-2">
+                <a href="{{ route('products.index') }}" class="btn btn-view-more px-4 py-2">
                     <i class="fas fa-arrow-right me-1"></i> Pilih Lapangan Lain
                 </a>
             </div>
+
         </div>
     </section>
 
-        {{-- 🟦 Section About Us --}}
+    {{-- SECTION ABOUT --}}
     <section class="py-5 bg-light">
         <div class="container">
             <div class="row align-items-center g-5">
-                {{-- Gambar Ilustrasi --}}
+
+                {{-- IMAGE --}}
                 <div class="col-md-5">
                     <img 
-                        src="https://froyonion.sgp1.cdn.digitaloceanspaces.com/images/blogdetail/f6bc1a4cc74afe4bec3d20338a577cf830d51388.jpg" 
-                        alt="Tim Sportykuy" 
+                        src="https://froyonion.sgp1.cdn.digitaloceanspaces.com/images/blogdetail/f6bc1a4cc74afe4bec3d20338a577cf830d51388.jpg"
                         class="img-fluid rounded"
-                        style="max-height: 400px; object-fit: contain;"
-                    >
+                        style="max-height: 400px; object-fit: cover;">
                 </div>
 
-                {{-- Konten --}}
+                {{-- TEXT --}}
                 <div class="col-md-7">
                     <h2 class="fw-bold display-6 text-brand">Tentang Sportykuy</h2>
-                    <p class="lead text-muted">
-                        All In One Booking Apps.
-                    </p>
-                    <p class="mb-4">
-                        Kami hadir untuk mempermudah kamu menemukan, memesan, dan menikmati momen seru bersama teman — tanpa ribet, tanpa waiting list.
-                    </p>
+                    <p class="lead text-muted">All In One Booking Apps.</p>
+                    <p>Aplikasi yang mempermudah kamu memesan lapangan favorit tanpa ribet dan tanpa antre.</p>
+
                     <div class="row g-3 mb-4">
-                        <div class="col-12 col-md-6">
+                        <div class="col-md-6">
                             <div class="d-flex align-items-start">
-                                <div class="bg-brand text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <div class="bg-brand text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                    style="width: 40px; height: 40px;">
                                     <i class="fas fa-check"></i>
                                 </div>
                                 <div>
-                                    <h5 class="h6 fw-bold mb-1">100+ Venue Terpercaya</h5>
-                                    <p class="small text-muted mb-0">Partner resmi dari lapangan terbaik di Jabodetabek.</p>
+                                    <h5 class="h6 fw-bold mb-1">100+ Venue</h5>
+                                    <p class="small text-muted mb-0">Partner resmi Jabodetabek.</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-6">
+
+                        <div class="col-md-6">
                             <div class="d-flex align-items-start">
-                                <div class="bg-brand text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <div class="bg-brand text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                                    style="width: 40px; height: 40px;">
                                     <i class="fas fa-shield-alt"></i>
                                 </div>
                                 <div>
                                     <h5 class="h6 fw-bold mb-1">Pembayaran Aman</h5>
-                                    <p class="small text-muted mb-0">Via Midtrans</p>
+                                    <p class="small text-muted mb-0">Via Midtrans.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    {{-- ROLE BUTTON DYNAMIC --}}
                     <div class="mt-3">
-    @auth
-        {{-- User Customer → tawarkan Gabung Mitra --}}
-        @if (auth()->user()->role === 'customer')
-            <form action="{{ route('partner.form') }}" method="POST">
-                @csrf
-                <button type="submit" class="btn btn-brand px-4 py-2">
-                    <i class="fas fa-users me-1"></i> Gabung Jadi Mitra
-                </button>
-            </form>
+                        @auth
 
-        {{-- User Partner → tampilkan tombol kelola lapangan --}}
-        @elseif(auth()->user()->role === 'partner')
-            <a href="{{ route('lapangan.index') }}" class="btn btn-success px-4 py-2">
-                <i class="fas fa-edit me-1"></i> Kelola Lapangan Saya
-            </a>
+                            {{-- CUSTOMER --}}
+                            @if(auth()->user()->role === 'customer')
+                                <a href="{{ route('partner.form') }}" class="btn btn-brand px-4 py-2">
+                                    <i class="fas fa-users me-1"></i> Gabung Jadi Mitra
+                                </a>
 
-        {{-- Super Admin → akses admin panel --}}
-        @elseif(auth()->user()->role === 'super_admin')
-            <a href="{{ route('lapangan.index') }}" class="btn btn-dark px-4 py-2">
-                <i class="fas fa-tools me-1"></i> Admin Panel Lapangan
-            </a>
-        @endif
+                            {{-- PARTNER --}}
+                            @elseif(auth()->user()->role === 'partner')
+                                <a href="{{ route('partner.lapangan.create') }}" 
+                                    class="btn btn-success px-4 py-2 me-2">
+                                    <i class="fas fa-edit me-1"></i> Kelola Lapangan
+                                </a>
 
-    @else
-        {{-- Belum login --}}
-        <a href="{{ route('login') }}" class="btn btn-brand px-4 py-2">
-            <i class="fas fa-sign-in-alt me-1"></i> Login untuk Menjadi Mitra
-        </a>
-    @endauth
+                                <form action="{{ route('partner.leave') }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button class="btn btn-danger px-4 py-2">
+                                        <i class="fas fa-sign-out-alt me-1"></i> Keluar Partner
+                                    </button>
+                                </form>
 
-</div>
+                            {{-- SUPER ADMIN --}}
+                            @elseif(auth()->user()->role === 'super_admin')
+                                <a href="{{ route('admin.dashboard') }}" class="btn btn-dark px-4 py-2">
+                                    <i class="fas fa-tools me-1"></i> Admin Panel
+                                </a>
+
+                            @endif
+
+                        @else
+                            {{-- USER BELUM LOGIN --}}
+                            <a href="{{ route('login') }}" class="btn btn-brand px-4 py-2">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login untuk Menjadi Mitra
+                            </a>
+                        @endauth
+                    </div>
+
                 </div>
             </div>
         </div>
     </section>
+
+</div>
 @endsection
