@@ -3,128 +3,106 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 
 class CartController extends Controller
 {
     public function index()
     {
         $cart = session('cart', []);
-        $cart = $this->prepareCartData($cart);
-        return view('cart.index', compact('cart'));
+        $items = $this->formatCart($cart);
+        $totalItems = collect($items)->sum('quantity');
+        $totalPrice = collect($items)->sum(fn($i) => $i['price'] * $i['quantity']);
+
+        return view('cart.index', compact('items', 'totalItems', 'totalPrice'));
     }
 
-public function add(Request $request)
-{
-    // ✅ Validasi ketat
-    $request->validate([
-        'product_id' => 'required|integer|min:1',
-        'name' => 'required|string|max:255',
-        'price' => 'required|numeric|min:0',
-        'quantity' => 'required|integer|min:1',
-    ]);
+    public function add(Request $request)
+    {
+        // Ambil data dari form (FormData)
+        $id = (int) $request->input('product_id', $request->input('id', 0));
+        $name = trim($request->input('name', 'Item'));
+        $price = (float) $request->input('price', 0);
+        $quantity = (int) $request->input('quantity', 1);
 
-    try {
-        // ✅ Ambil data lama
-        $cart = session('cart', []);
-        
-        // ✅ Pastikan $cart array
-        if (!is_array($cart)) {
-            $cart = [];
+        // Validasi minimal
+        if ($id <= 0 || $price < 0 || $quantity <= 0) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Data tidak lengkap',
+                'debug' => compact('id', 'name', 'price', 'quantity')
+            ], 400);
         }
 
-        $id = (int) $request->product_id;
-
-        // ✅ Tambahkan ke cart
+        // Simpan ke session
+        $cart = session('cart', []);
         $cart[$id] = [
             'id' => $id,
-            'name' => trim($request->name),
-            'price' => (float) $request->price,
-            'quantity' => (int) ($request->quantity ?? 1),
-            'created_at' => now()->toDateTimeString(),
+            'name' => $name,
+            'price' => $price,
+            'quantity' => ($cart[$id]['quantity'] ?? 0) + $quantity,
         ];
-
-        // ✅ Simpan
         session(['cart' => $cart]);
+
+        $totalItems = collect($cart)->sum('quantity');
 
         return response()->json([
             'success' => true,
-            'message' => 'Produk ditambahkan',
-            'cart_count' => collect($cart)->sum('quantity')
+            'message' => 'Berhasil ditambahkan ke keranjang',
+            'cart_count' => $totalItems,
         ]);
-
-    } catch (\Exception $e) {
-        // ✅ Tangkap semua error
-        \Log::error('Cart add failed', [
-            'input' => $request->all(),
-            'error' => $e->getMessage(),
-            'line' => $e->getLine(),
-            'file' => basename($e->getFile()),
-        ]);
-
-        return response()->json([
-            'success' => false,
-            'error' => 'Gagal menambahkan ke keranjang',
-            'debug' => app()->isLocal() ? $e->getMessage() : null
-        ], 500);
     }
-}
+
     public function remove(Request $request)
     {
-        $request->validate(['product_id' => 'required|integer']);
-        
         $cart = session('cart', []);
-        unset($cart[$request->product_id]);
-        session(['cart' => $cart]);
-
+        $id = (int) $request->input('product_id');
+        if (isset($cart[$id])) {
+            unset($cart[$id]);
+            session(['cart' => $cart]);
+        }
         return response()->json(['success' => true]);
     }
 
     public function update(Request $request)
     {
-        $request->validate([
-            'product_id' => 'required|integer',
-            'action' => 'required|in:increase,decrease'
-        ]);
-
         $cart = session('cart', []);
-        $id = $request->product_id;
+        $id = (int) $request->input('product_id');
+        $quantity = (int) $request->input('quantity', 1);
 
-        if (!isset($cart[$id])) {
-            return response()->json(['success' => false, 'error' => 'Produk tidak ditemukan']);
-        }
-
-        if ($request->action === 'increase') {
-            $cart[$id]['quantity']++;
-        } elseif ($request->action === 'decrease') {
-            if ($cart[$id]['quantity'] > 1) {
-                $cart[$id]['quantity']--;
-            } else {
+        if (isset($cart[$id])) {
+            if ($quantity <= 0) {
                 unset($cart[$id]);
+            } else {
+                $cart[$id]['quantity'] = $quantity;
             }
+            session(['cart' => $cart]);
         }
-
-        session(['cart' => $cart]);
-        return response()->json(['success' => true, 'cart' => $this->prepareCartData($cart)]);
+        return response()->json(['success' => true]);
     }
 
     public function count()
     {
         $cart = session('cart', []);
-        $cart = $this->prepareCartData($cart);
-        
-        $totalItems = collect($cart)->sum('quantity');
-        $totalPrice = collect($cart)->sum(fn($item) => $item['price'] * $item['quantity']);
+        $items = $this->formatCart($cart);
+        $totalItems = collect($items)->sum('quantity');
+        $totalPrice = collect($items)->sum(fn($i) => $i['price'] * $i['quantity']);
 
         return response()->json([
             'total_items' => $totalItems,
             'total_price' => $totalPrice,
-            'items' => $cart,
+            'items' => $items,
         ]);
     }
 
-    private function prepareCartData($cart)
+    private function formatCart($cart)
     {
-        return array_values($cart);
+        return collect($cart)->map(function ($item, $id) {
+            return [
+                'id' => (int) $id,
+                'name' => $item['name'] ?? 'Item',
+                'price' => (float) ($item['price'] ?? 0),
+                'quantity' => (int) ($item['quantity'] ?? 1),
+            ];
+        })->values()->all();
     }
 }

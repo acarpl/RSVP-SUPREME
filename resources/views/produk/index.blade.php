@@ -43,9 +43,9 @@
                         <!-- Gambar Produk -->
                         <div class="position-relative">
                             <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://placehold.co/400x250/e2e8f0/94a3b8?text=+' }}"
-     class="card-img-top"
-     alt="{{ $product->name }}"
-     style="height: 200px; object-fit: cover;">
+                                 class="card-img-top"
+                                 alt="{{ $product->name }}"
+                                 style="height: 200px; object-fit: cover;">
                             
                             <!-- Badge Kategori -->
                             <span class="position-absolute top-0 start-0 bg-accent text-white fw-bold px-2 py-1 small">
@@ -163,38 +163,40 @@ document.addEventListener('alpine:init', () => {
         addToCart(productId, name, price) {
             this.adding[productId] = true;
 
-            // ✅ Pakai NAMED ROUTE 'cart.add' — SUDAH AMAN karena route sudah ada di web.php
-            fetch("{{ route('cart.add') }}", {
+            // ✅ Perbaikan: Gunakan FormData (bukan JSON)
+            const formData = new FormData();
+            formData.append('product_id', productId);
+            formData.append('name', name);
+            formData.append('price', price);
+            formData.append('quantity', 1);
+            formData.append('_token', '{{ csrf_token() }}'); // CSRF token
+
+            // ✅ Kirim ke /cart/add (path langsung)
+            fetch('/cart/add', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    name: name,
-                    price: price,
-                    quantity: 1
-                })
+                body: formData
+                // ❗ JANGAN SET headers: Content-Type — biarkan browser set otomatis
             })
-            .then(res => {
-                if (!res.ok) throw new Error('Response not OK');
-                return res.json();
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
+                    });
+                }
+                return response.json();
             })
             .then(data => {
                 if (data.success) {
-                    // Trigger update cart di navbar (jika pakai Alpine global)
+                    // Trigger update cart di navbar
                     document.dispatchEvent(new CustomEvent('cart-updated'));
-                    
-                    // Notifikasi sukses
-                    alert(`${name} berhasil ditambahkan ke keranjang!`);
+                    alert('✅ ' + data.message);
                 } else {
-                    throw new Error('Server response: success=false');
+                    throw new Error(data.error || 'Gagal menambahkan');
                 }
             })
             .catch(err => {
-                console.error('Cart add error:', err);
-                alert(`Gagal menambahkan ${name} ke keranjang.\nCoba lagi nanti.`);
+                console.error('Cart error:', err);
+                alert('❌ Gagal: ' + err.message);
             })
             .finally(() => {
                 this.adding[productId] = false;

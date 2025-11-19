@@ -7,7 +7,6 @@ use App\Http\Controllers\LapanganController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\FieldController;
 use App\Models\Lapangan;
 
 /*
@@ -29,8 +28,6 @@ Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers.ind
 Route::get('/lapangan', [LapanganController::class, 'customerIndex'])->name('lapangan.index');
 Route::get('/lapangan/{lapangan}', [LapanganController::class, 'customerShow'])->name('lapangan.show');
 
-
-
 /*
 |--------------------------------------------------------------------------
 | AUTH ONLY
@@ -49,18 +46,13 @@ Route::middleware(['auth'])->group(function () {
 
     // BOOKING
     Route::prefix('booking')->name('booking.')->group(function () {
-
         Route::get('/', [BookingController::class, 'index'])->name('index');
-
         Route::get('/lapangan/{lapangan}/order-now', [BookingController::class, 'orderNow'])->name('order-now');
         Route::post('/lapangan/{lapangan}/order-now', [BookingController::class, 'storeOrderNow'])->name('order-now.store');
-
         Route::get('/from-cart', [BookingController::class, 'createFromCart'])->name('cart');
         Route::post('/from-cart', [BookingController::class, 'storeFromCart'])->name('cart.store');
-
         Route::get('/{booking}/checkout', [BookingController::class, 'checkout'])->name('checkout');
         Route::post('/{booking}/confirm', [BookingController::class, 'confirm'])->name('confirm');
-
         Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
     });
 
@@ -70,11 +62,8 @@ Route::middleware(['auth'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:partner')->prefix('partner')->name('partner.')->group(function () {
-
         // Dashboard partner
         Route::get('/dashboard', [ProfileController::class, 'partnerDashboard'])->name('dashboard');
-
-        // Button keluar partner → kembali menjadi user biasa
         Route::post('/leave', [ProfileController::class, 'leavePartner'])->name('leave');
 
         // Manage Product
@@ -96,17 +85,13 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{voucher}', [VoucherController::class, 'destroy'])->name('destroy');
         });
 
-    Route::middleware(['auth', 'role:partner']) // ← sesuaikan middleware Anda
-        ->prefix('partner')
-        ->name('partner.')
-        ->group(function () {
+        // Manage Lapangan
         Route::get('/lapangan', [LapanganController::class, 'index'])->name('lapangan.index');
         Route::get('/lapangan/create', [LapanganController::class, 'create'])->name('lapangan.create');
         Route::post('/lapangan', [LapanganController::class, 'store'])->name('lapangan.store');
         Route::get('/lapangan/{lapangan}/edit', [LapanganController::class, 'edit'])->name('lapangan.edit');
         Route::put('/lapangan/{lapangan}', [LapanganController::class, 'update'])->name('lapangan.update');
         Route::delete('/lapangan/{lapangan}', [LapanganController::class, 'destroy'])->name('lapangan.destroy');
-        });
     });
 
     /*
@@ -117,12 +102,11 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:super_admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', fn() => view('template.dashboard'))->name('dashboard');
     });
-});
-
+}); // ✅ HANYA SATU PENUTUP UNTUK AUTH GROUP
 
 /*
 |--------------------------------------------------------------------------
-| CART ROUTES (BISA TANPA LOGIN)
+| CART ROUTES (UNTUK SEMUA: GUEST & AUTH)
 |--------------------------------------------------------------------------
 */
 Route::prefix('cart')->name('cart.')->group(function () {
@@ -130,6 +114,7 @@ Route::prefix('cart')->name('cart.')->group(function () {
     Route::post('/add', [CartController::class, 'add'])->name('add');
     Route::post('/remove', [CartController::class, 'remove'])->name('remove');
     Route::post('/update', [CartController::class, 'update'])->name('update');
+    Route::get('/count', [CartController::class, 'count'])->name('count');
 });
 
 require __DIR__.'/auth.php';
