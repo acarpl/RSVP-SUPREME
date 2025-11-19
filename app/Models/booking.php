@@ -2,21 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'lapangan_id', 'start_time', 'end_time',
-        'duration_hours', 'total_price', 'status'
+        'user_id', 'lapangan_id', 'tanggal', 'jam_mulai', 'jam_selesai', 
+        'durasi', 'total_harga', 'status'
     ];
 
     protected $casts = [
-        'start_time' => 'datetime',
-        'end_time' => 'datetime',
+        'tanggal' => 'date',
+        'jam_mulai' => 'datetime:H:i',
+        'jam_selesai' => 'datetime:H:i',
+        'total_harga' => 'decimal:2',
     ];
 
     public function user()
@@ -29,8 +31,20 @@ class Booking extends Model
         return $this->belongsTo(Lapangan::class);
     }
 
-    public function items()
+    // Scope untuk cek ketersediaan
+    public function scopeAvailable($query, $lapanganId, $tanggal, $jamMulai, $durasi)
     {
-        return $this->hasMany(BookingItem::class);
+        $jamSelesai = date('H:i', strtotime("$jamMulai +{$durasi} hours"));
+        
+        return $query->where('lapangan_id', $lapanganId)
+                    ->where('tanggal', $tanggal)
+                    ->where(function ($q) use ($jamMulai, $jamSelesai) {
+                        $q->whereBetween('jam_mulai', [$jamMulai, $jamSelesai])
+                          ->orWhereBetween('jam_selesai', [$jamMulai, $jamSelesai])
+                          ->orWhere(function ($q2) use ($jamMulai, $jamSelesai) {
+                              $q2->where('jam_mulai', '<=', $jamMulai)
+                                 ->where('jam_selesai', '>=', $jamSelesai);
+                          });
+                    })->doesntExist();
     }
 }

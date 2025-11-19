@@ -9,20 +9,20 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+   public function up()
 {
-   Schema::create('bookings', function (Blueprint $table) {
+    Schema::create('bookings', function (Blueprint $table) {
         $table->id();
         $table->foreignId('user_id')->constrained()->onDelete('cascade');
         $table->foreignId('lapangan_id')->constrained()->onDelete('cascade');
-        $table->dateTime('start_time');
-        $table->dateTime('end_time');
-        $table->integer('duration_hours');
-        $table->bigInteger('total_price');
-        $table->enum('status', ['pending', 'confirmed', 'completed', 'cancelled'])->default('pending');
+        $table->date('tanggal');
+        $table->time('jam_mulai');
+        $table->time('jam_selesai');
+        $table->integer('durasi'); // dalam jam
+        $table->decimal('total_harga', 12, 2);
+        $table->enum('status', ['menunggu', 'dikonfirmasi', 'selesai', 'dibatalkan'])->default('menunggu');
         $table->timestamps();
     });
-
 }
 
 

@@ -3,157 +3,139 @@
 @section('title', 'Tambah Lapangan')
 
 @section('content')
-<div class="container mx-auto px-4 py-6 max-w-2xl">
-    <a href="{{ route('partner.lapangan.index') }}" class="inline-flex items-center text-blue-600 hover:underline mb-6">
-        ← Kembali ke Daftar
-    </a>
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ route('partner.lapangan.index') }}" class="btn btn-outline-brand rounded-circle me-3">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="fw-bold text-brand mb-0">Tambah Lapangan Baru</h1>
+            <p class="text-muted mb-0">Lengkapi informasi lapangan untuk ditampilkan ke customer</p>
+        </div>
+    </div>
 
-    <div class="bg-white shadow rounded-lg p-6">
-        <h2 class="text-xl font-bold text-gray-800 mb-6">Tambah Lapangan Baru</h2>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <!-- ✅ Pastikan action dan method benar -->
+            <form action="{{ route('partner.lapangan.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
 
-        <form action="{{ route('partner.lapangan.store') }}" method="POST" id="lapanganForm">
-            @csrf
-
-            <!-- Nama -->
-            <div class="mb-4">
-                <label for="nama" class="block text-gray-700 font-medium mb-2">Nama Lapangan *</label>
-                <input type="text" name="nama" id="nama" required
-                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                       value="{{ old('nama') }}">
-                @error('nama')<p class="text-red-500 text-sm mt-1">{{ $message }}</p>@enderror
-            </div>
-
-            <!-- Lokasi -->
-            <div class="mb-4">
-                <label for="lokasi" class="block text-gray-700 font-medium mb-2">Lokasi</label>
-                <input type="text" name="lokasi" id="lokasi"
-                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                       value="{{ old('lokasi') }}">
-            </div>
-
-            <!-- Harga -->
-            <div class="mb-4">
-                <label for="harga" class="block text-gray-700 font-medium mb-2">Harga per Jam (Rp) *</label>
-                <input type="number" name="harga" id="harga" required min="0"
-                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                       value="{{ old('harga') }}">
-            </div>
-
-            <!-- Kapasitas -->
-            <div class="mb-4">
-                <label for="kapasitas" class="block text-gray-700 font-medium mb-2">Kapasitas (orang)</label>
-                <input type="number" name="kapasitas" id="kapasitas" min="1"
-                       class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                       value="{{ old('kapasitas') }}">
-            </div>
-
-            <!-- Status -->
-            <div class="mb-6">
-                <label class="block text-gray-700 font-medium mb-2">Status *</label>
-                <div class="flex space-x-6">
-                    <label class="inline-flex items-center">
-                        <input type="radio" name="status" value="aktif" required
-                               class="text-blue-600 focus:ring-blue-500" {{ old('status', 'aktif') == 'aktif' ? 'checked' : '' }}>
-                        <span class="ml-2">Aktif (Tampil ke Customer)</span>
-                    </label>
-                    <label class="inline-flex items-center">
-                        <input type="radio" name="status" value="nonaktif"
-                               class="text-gray-600 focus:ring-gray-500" {{ old('status') == 'nonaktif' ? 'checked' : '' }}>
-                        <span class="ml-2">Nonaktif</span>
-                    </label>
+                <!-- Nama Lapangan -->
+                <div class="mb-4">
+                    <label class="form-label fw-medium">Nama Lapangan <span class="text-danger">*</span></label>
+                    <input type="text" name="nama" class="form-control form-control-lg" 
+                           value="{{ old('nama') }}" 
+                           placeholder="Contoh: Lapangan Surya Futsal"
+                           required>
+                    @error('nama')
+                        <div class="text-danger mt-1">{{ $message }}</div>
+                    @enderror
                 </div>
-            </div>
 
-            <!-- Upload & Crop Gambar -->
-            <div class="mb-6">
-                <label class="block text-gray-700 font-medium mb-2">Foto Lapangan</label>
-                <p class="text-sm text-gray-500 mb-3">Upload untuk preview & crop sesuai kebutuhan.</p>
+                <!-- Lokasi - ✅ WAJIB DIPERHATIKAN -->
+                <div class="mb-4">
+                    <label class="form-label fw-medium">Lokasi <span class="text-danger">*</span></label>
+                    <input type="text" name="lokasi" class="form-control" 
+                           value="{{ old('lokasi') }}" 
+                           placeholder="Contoh: Jl. Raya Bekasi No. 123"
+                           required> <!-- ✅ required, TANPA disabled -->
+                    @error('lokasi')
+                        <div class="text-danger mt-1">{{ $message }}</div>
+                    @enderror
+                </div>
 
-                <!-- Upload asli -->
-                <input type="file" id="imageUpload" accept="image/*"
-                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                <div class="row mb-4">
+                    <!-- Harga -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Harga per Jam (Rp) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">Rp</span>
+                            <input type="number" name="harga" class="form-control" 
+                                   value="{{ old('harga', 0) }}" 
+                                   min="0" required>
+                        </div>
+                        @error('harga')
+                            <div class="text-danger mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
 
-                <!-- Preview & Crop Area -->
-                <div id="cropContainer" class="mt-4 hidden">
-                    <img id="previewImage" src="" alt="Preview" class="hidden">
-                    <div class="relative w-full h-64 bg-gray-100 rounded overflow-hidden mt-2">
-                        <img id="cropImage" src="" alt="Crop Preview" class="absolute inset-0 w-full h-full object-contain">
+                    <!-- Kapasitas -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-medium">Kapasitas (Orang)</label>
+                        <input type="number" name="kapasitas" class="form-control" 
+                               value="{{ old('kapasitas') }}" 
+                               min="0">
+                        @error('kapasitas')
+                            <div class="text-danger mt-1">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
 
-                <!-- Hidden field untuk base64 cropped image -->
-                <input type="hidden" name="cropped_gambar" id="cropped_gambar">
-            </div>
+                <!-- Status -->
+                <div class="mb-4">
+                    <label class="form-label fw-medium">Status <span class="text-danger">*</span></label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="status" id="status_aktif" 
+                               value="aktif" {{ old('status', 'aktif') == 'aktif' ? 'checked' : '' }} required>
+                        <label class="form-check-label" for="status_aktif">
+                            <i class="fas fa-circle text-success me-2"></i> Aktif (Tampil ke Customer)
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="status" id="status_nonaktif" 
+                               value="nonaktif" {{ old('status', 'aktif') == 'nonaktif' ? 'checked' : '' }}>
+                        <label class="form-check-label" for="status_nonaktif">
+                            <i class="fas fa-circle text-secondary me-2"></i> Nonaktif (Sembunyikan dari Customer)
+                        </label>
+                    </div>
+                    @error('status')
+                        <div class="text-danger mt-1">{{ $message }}</div>
+                    @enderror
+                </div>
 
-            <!-- Submit -->
-            <div class="flex justify-end space-x-3">
-                <a href="{{ route('partner.lapangan.index') }}"
-                   class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
-                    Batal
-                </a>
-                <button type="submit" id="submitBtn"
-                        class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Simpan
-                </button>
-            </div>
-        </form>
+                <!-- Upload Gambar -->
+                <div class="mb-4">
+                    <label class="form-label fw-medium">Foto Lapangan</label>
+                    <input type="file" name="gambar" class="form-control" accept="image/*">
+                    @error('gambar')
+                        <div class="text-danger mt-2">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <!-- Tombol Aksi -->
+                <div class="d-flex gap-3">
+                    <a href="{{ route('partner.lapangan.index') }}" class="btn btn-outline-secondary px-4">
+                        <i class="fas fa-times me-2"></i>Batal
+                    </a>
+                    <button type="submit" class="btn btn-brand px-4">
+                        <i class="fas fa-save me-2"></i>Simpan Lapangan
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
+<!-- ✅ Debug: Cek apakah form mengirim data -->
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.css">
-
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const imageUpload = document.getElementById('imageUpload');
-    const previewImage = document.getElementById('previewImage');
-    const cropImage = document.getElementById('cropImage');
-    const cropContainer = document.getElementById('cropContainer');
-    const croppedInput = document.getElementById('cropped_gambar');
-    let cropper;
-
-    imageUpload.addEventListener('change', function (e) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = function (event) {
-            const imgSrc = event.target.result;
-            previewImage.src = imgSrc;
-            cropImage.src = imgSrc;
-            cropContainer.classList.remove('hidden');
-
-            // Inisialisasi Cropper.js
-            if (cropper) cropper.destroy();
-            cropper = new Cropper(cropImage, {
-                aspectRatio: 16 / 9,
-                viewMode: 1,
-                autoCropArea: 0.8,
-                movable: true,
-                scalable: true,
-                zoomable: true,
-                guides: true,
-            });
-        };
-        reader.readAsDataURL(file);
-    });
-
-    // Saat form submit, convert crop ke base64
-    document.getElementById('lapanganForm').addEventListener('submit', function (e) {
-        if (cropper) {
-            const canvas = cropper.getCroppedCanvas({
-                width: 800,
-                height: 450,
-                imageSmoothingEnabled: true,
-                imageSmoothingQuality: 'high',
-            });
-            croppedInput.value = canvas.toDataURL('image/jpeg', 0.9); // base64
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const lokasi = document.querySelector('input[name="lokasi"]').value.trim();
+        console.log('Data yang akan dikirim:', {
+            nama: document.querySelector('input[name="nama"]').value,
+            lokasi: lokasi,
+            harga: document.querySelector('input[name="harga"]').value,
+            kapasitas: document.querySelector('input[name="kapasitas"]').value,
+            status: document.querySelector('input[name="status"]:checked')?.value
+        });
+        
+        if (!lokasi) {
+            e.preventDefault();
+            alert('⚠️ Lokasi wajib diisi!');
+            document.querySelector('input[name="lokasi"]').focus();
         }
-        // Tetap submit meskipun tidak ada gambar
     });
 });
 </script>

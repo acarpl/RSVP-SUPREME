@@ -5,18 +5,19 @@ namespace App\Http\Controllers;
 use App\Models\Lapangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class LapanganController extends Controller
 {
-    // ✅ CUSTOMER: lihat daftar lapangan aktif
+    // ===============
+    // CUSTOMER/GUEST
+    // ===============
+
     public function customerIndex()
     {
         $lapangans = Lapangan::where('status', 'aktif')->latest()->get();
         return view('lapangan.index', compact('lapangans'));
     }
 
-    // ✅ CUSTOMER: lihat detail lapangan
     public function customerShow(Lapangan $lapangan)
     {
         if ($lapangan->status !== 'aktif') {
@@ -25,115 +26,108 @@ class LapanganController extends Controller
         return view('lapangan.show', compact('lapangan'));
     }
 
-    // ✅ PARTNER: lihat semua lapangan (termasuk non-aktif)
+    // ===============
+    // PARTNER ONLY
+    // ===============
+
     public function index()
     {
+        $this->authorize('partner');
         $lapangans = Lapangan::latest()->get();
         return view('lapangan.partner.index', compact('lapangans'));
     }
 
-    // ✅ PARTNER: form tambah
     public function create()
     {
+        $this->authorize('partner');
         return view('lapangan.partner.create');
     }
 
-    // ✅ PARTNER: simpan
     public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'nama' => 'required|string|max:255',
-            'lokasi' => 'nullable|string|max:255',
-            'kapasitas' => 'nullable|integer|min:1',
-            'harga' => 'required|numeric|min:0',
-            'status' => 'required|in:aktif,nonaktif',
-            'cropped_gambar' => 'nullable|string',
-        ]);
+{
+    $this->authorize('partner');
+    
+    $request->validate([
+        'nama' => 'required|string|max:255',
+        'lokasi' => 'required|string|max:255',
+        'harga' => 'required|integer|min:0',
+        'status' => 'required|in:aktif,nonaktif',
+    ]);
 
-        $path = null;
-        if (!empty($validated['cropped_gambar'])) {
-            $path = $this->saveBase64Image($validated['cropped_gambar']);
-        }
+    // ✅ BUAT OBJEK MANUAL (tanpa create mass assignment)
+    $lapangan = new Lapangan();
+    $lapangan->nama = $request->nama;
+    $lapangan->lokasi = $request->lokasi;
+    $lapangan->kapasitas = $request->kapasitas;
+    $lapangan->harga = $request->harga;
+    $lapangan->status = $request->status;
 
-        Lapangan::create([
-            'nama' => $validated['nama'],
-            'lokasi' => $validated['lokasi'] ?? null,
-            'kapasitas' => $validated['kapasitas'] ?? null,
-            'harga' => $validated['harga'],
-            'status' => $validated['status'],
-            'gambar' => $path,
-        ]);
-
-        return redirect()->route('partner.lapangan.index')
-                         ->with('success', 'Lapangan berhasil ditambahkan!');
+    if ($request->hasFile('gambar')) {
+        $lapangan->gambar = $request->file('gambar')->store('lapangan', 'public');
     }
 
-    // ✅ PARTNER: form edit
+    $lapangan->save();
+
+    return redirect()->route('lapangan.index')
+                    ->with('success', 'Lapangan berhasil ditambahkan!');
+}
+
     public function edit(Lapangan $lapangan)
     {
+        $this->authorize('partner');
         return view('lapangan.partner.edit', compact('lapangan'));
     }
 
-    // ✅ PARTNER: update
     public function update(Request $request, Lapangan $lapangan)
     {
-        $validated = $request->validate([
+        $this->authorize('partner');
+        
+        // ✅ Perbaikan: validasi dengan TITIK DUA (:)
+        $request->validate([
             'nama' => 'required|string|max:255',
-            'lokasi' => 'nullable|string|max:255',
-            'kapasitas' => 'nullable|integer|min:1',
-            'harga' => 'required|numeric|min:0',
+            'lokasi' => 'required|string|max:255', // ✅ required
+            'kapasitas' => 'nullable|integer|min:0', // ✅ min:0
+            'harga' => 'required|integer|min:0',
             'status' => 'required|in:aktif,nonaktif',
-            'cropped_gambar' => 'nullable|string',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Handle gambar baru
-        if (!empty($validated['cropped_gambar'])) {
-            $newPath = $this->saveBase64Image($validated['cropped_gambar']);
-            // Hapus gambar lama
+        // ✅ Perbaikan: gunakan only()
+        $data = $request->only(['nama', 'lokasi', 'kapasitas', 'harga', 'status']);
+
+        // Handle gambar
+        if ($request->hasFile('gambar')) {
             if ($lapangan->gambar && Storage::disk('public')->exists($lapangan->gambar)) {
                 Storage::disk('public')->delete($lapangan->gambar);
             }
-            $lapangan->gambar = $newPath;
+            $path = $request->file('gambar')->store('lapangan', 'public');
+            $data['gambar'] = $path;
         }
 
-        $lapangan->update([
-            'nama' => $validated['nama'],
-            'lokasi' => $validated['lokasi'] ?? $lapangan->lokasi,
-            'kapasitas' => $validated['kapasitas'] ?? $lapangan->kapasitas,
-            'harga' => $validated['harga'],
-            'status' => $validated['status'],
-        ]);
+        $lapangan->update($data);
 
         return redirect()->route('partner.lapangan.index')
-                         ->with('success', 'Lapangan berhasil diperbarui!');
+                        ->with('success', 'Lapangan "' . $lapangan->nama . '" berhasil diperbarui!');
     }
 
-    // ✅ PARTNER: hapus
     public function destroy(Lapangan $lapangan)
     {
+        $this->authorize('partner');
+        
         if ($lapangan->gambar && Storage::disk('public')->exists($lapangan->gambar)) {
             Storage::disk('public')->delete($lapangan->gambar);
         }
+        $nama = $lapangan->nama;
         $lapangan->delete();
 
         return redirect()->route('partner.lapangan.index')
-                         ->with('success', 'Lapangan berhasil dihapus!');
+                        ->with('success', 'Lapangan "' . $nama . '" berhasil dihapus!');
     }
 
-    // ✅ Helper: simpan base64 ke storage
-    protected function saveBase64Image(string $dataUrl)
+    private function authorize($role)
     {
-        if (preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $type)) {
-            $imageData = substr($dataUrl, strpos($dataUrl, ',') + 1);
-            $imageData = base64_decode($imageData);
-            $extension = strtolower($type[1]);
-            if (!in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
-                $extension = 'png';
-            }
-            $filename = 'lapangan/' . Str::random(20) . '.' . $extension;
-            Storage::disk('public')->put($filename, $imageData);
-            return $filename;
+        if (!auth()->check() || auth()->user()->role !== $role) {
+            abort(403);
         }
-        return null;
     }
 }

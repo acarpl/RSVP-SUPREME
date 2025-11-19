@@ -11,7 +11,7 @@ use App\Models\Lapangan;
 
 /*
 |--------------------------------------------------------------------------
-| PUBLIC ROUTES
+| PUBLIC ROUTES (CUSTOMER & GUEST)
 |--------------------------------------------------------------------------
 */
 
@@ -25,12 +25,26 @@ Route::get('/products/{product}', [ProductController::class, 'show'])->name('pro
 
 Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers.index');
 
+// ✅ LAPANGAN UNTUK CUSTOMER/GUEST
 Route::get('/lapangan', [LapanganController::class, 'customerIndex'])->name('lapangan.index');
 Route::get('/lapangan/{lapangan}', [LapanganController::class, 'customerShow'])->name('lapangan.show');
 
 /*
 |--------------------------------------------------------------------------
-| AUTH ONLY
+| CART ROUTES (SEMUA USER)
+|--------------------------------------------------------------------------
+*/
+Route::prefix('cart')->name('cart.')->group(function () {
+    Route::get('/', [CartController::class, 'index'])->name('index');
+    Route::post('/add', [CartController::class, 'add'])->name('add');
+    Route::post('/remove', [CartController::class, 'remove'])->name('remove');
+    Route::post('/update', [CartController::class, 'update'])->name('update');
+    Route::get('/count', [CartController::class, 'count'])->name('count');
+});
+
+/*
+|--------------------------------------------------------------------------
+| AUTH ONLY (CUSTOMER & PARTNER)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
@@ -54,11 +68,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{booking}/checkout', [BookingController::class, 'checkout'])->name('checkout');
         Route::post('/{booking}/confirm', [BookingController::class, 'confirm'])->name('confirm');
         Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
+        Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
+        Route::get('/{booking}/receipt', [BookingController::class, 'receipt'])->name('receipt');
     });
 
     /*
     |--------------------------------------------------------------------------
-    | PARTNER
+    | PARTNER ONLY — HANYA LAPANGAN (SESUAI STRUKTUR ANDA)
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:partner')->prefix('partner')->name('partner.')->group(function () {
@@ -85,7 +101,7 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{voucher}', [VoucherController::class, 'destroy'])->name('destroy');
         });
 
-        // Manage Lapangan
+        // ✅ MANAGE LAPANGAN — SESUAI FOLDER ANDA: lapangan/partner
         Route::get('/lapangan', [LapanganController::class, 'index'])->name('lapangan.index');
         Route::get('/lapangan/create', [LapanganController::class, 'create'])->name('lapangan.create');
         Route::post('/lapangan', [LapanganController::class, 'store'])->name('lapangan.store');
@@ -102,19 +118,6 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware('role:super_admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', fn() => view('template.dashboard'))->name('dashboard');
     });
-}); // ✅ HANYA SATU PENUTUP UNTUK AUTH GROUP
-
-/*
-|--------------------------------------------------------------------------
-| CART ROUTES (UNTUK SEMUA: GUEST & AUTH)
-|--------------------------------------------------------------------------
-*/
-Route::prefix('cart')->name('cart.')->group(function () {
-    Route::get('/', [CartController::class, 'index'])->name('index');
-    Route::post('/add', [CartController::class, 'add'])->name('add');
-    Route::post('/remove', [CartController::class, 'remove'])->name('remove');
-    Route::post('/update', [CartController::class, 'update'])->name('update');
-    Route::get('/count', [CartController::class, 'count'])->name('count');
 });
 
 require __DIR__.'/auth.php';
