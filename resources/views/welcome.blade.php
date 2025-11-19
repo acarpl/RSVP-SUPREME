@@ -26,8 +26,12 @@
                             @slot('title', $item->nama)
                             @slot('location', $item->lokasi)
                             @slot('capacity', $item->kapasitas . ' Orang')
-                            @slot('price', 'Rp ' . number_format($item->harga_per_jam, 0, ',', '.') . ' / Jam')
-                            @slot('image', $item->gambar_url ?? asset('images/default-lapangan.jpg'))
+                            
+                            {{-- HARGA FIX --}}
+                            @slot('price', 'Rp ' . number_format($item->harga, 0, ',', '.') . ' / Jam')
+
+                            {{-- GAMBAR FIX --}}
+                            @slot('image', $item->gambar ? asset('storage/' . $item->gambar) : asset('images/default-lapangan.jpg'))
 
                             {{-- BUTTON BOOKING --}}
                             <a href="{{ route('booking.order-now', $item->id) }}" 
@@ -47,7 +51,7 @@
 
             {{-- BUTTON VIEW MORE --}}
             <div class="text-center mt-4">
-                <a href="{{ route('products.index') }}" class="btn btn-view-more px-4 py-2">
+                <a href="{{ route('lapangan.index') }}" class="btn btn-view-more px-4 py-2">
                     <i class="fas fa-arrow-right me-1"></i> Pilih Lapangan Lain
                 </a>
             </div>
@@ -114,7 +118,7 @@
 
                             {{-- PARTNER --}}
                             @elseif(auth()->user()->role === 'partner')
-                                <a href="{{ route('partner.lapangan') }}" 
+                                <a href="{{ route('lapangan.index') }}" 
                                     class="btn btn-success px-4 py-2 me-2">
                                     <i class="fas fa-edit me-1"></i> Kelola Lapangan
                                 </a>

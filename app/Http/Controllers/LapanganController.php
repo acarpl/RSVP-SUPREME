@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Lapangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class LapanganController extends Controller
 {
@@ -14,7 +15,10 @@ class LapanganController extends Controller
 
     public function customerIndex()
     {
-        $lapangans = Lapangan::where('status', 'aktif')->latest()->get();
+        $lapangans = Lapangan::where('status', 'aktif')
+                             ->latest()
+                             ->paginate(9); // ✅ pagination
+
         return view('lapangan.index', compact('lapangans'));
     }
 
@@ -33,7 +37,12 @@ class LapanganController extends Controller
     public function index()
     {
         $this->authorize('partner');
-        $lapangans = Lapangan::latest()->get();
+        
+        // ✅ Hanya tampilkan lapangan milik partner yang sedang login
+        $lapangans = Lapangan::where('partner_id', Auth::id())
+                             ->latest()
+                             ->paginate(9); // ✅ pagination
+
         return view('lapangan.partner.index', compact('lapangans'));
     }
 
@@ -44,37 +53,46 @@ class LapanganController extends Controller
     }
 
     public function store(Request $request)
-{
-    $this->authorize('partner');
-    
-    $request->validate([
-        'nama' => 'required|string|max:255',
-        'lokasi' => 'required|string|max:255',
-        'harga' => 'required|integer|min:0',
-        'status' => 'required|in:aktif,nonaktif',
-    ]);
+    {
+        $this->authorize('partner');
+        
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'lokasi' => 'required|string|max:255',
+            'kapasitas' => 'required|integer|min:1', // ✅ required & min:1
+            'harga' => 'required|integer|min:10000', // ✅ min:10.000
+            'status' => 'required|in:aktif,nonaktif',
+            'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
 
-    // ✅ BUAT OBJEK MANUAL (tanpa create mass assignment)
-    $lapangan = new Lapangan();
-    $lapangan->nama = $request->nama;
-    $lapangan->lokasi = $request->lokasi;
-    $lapangan->kapasitas = $request->kapasitas;
-    $lapangan->harga = $request->harga;
-    $lapangan->status = $request->status;
+        $lapangan = new Lapangan();
+        $lapangan->partner_id = Auth::id(); // ✅ otomatis set partner
+        $lapangan->nama = $request->nama;
+        $lapangan->lokasi = $request->lokasi;
+        $lapangan->kapasitas = $request->kapasitas;
+        $lapangan->harga = $request->harga;
+        $lapangan->status = $request->status;
 
-    if ($request->hasFile('gambar')) {
-        $lapangan->gambar = $request->file('gambar')->store('lapangan', 'public');
+        if ($request->hasFile('gambar')) {
+            $lapangan->gambar = $request->file('gambar')->store('lapangan', 'public');
+        }
+
+        $lapangan->save();
+
+        // ✅ Redirect ke halaman partner (bukan lapangan.index)
+        return redirect()->route('partner.lapangan.index')
+                        ->with('success', 'Lapangan berhasil ditambahkan!');
     }
-
-    $lapangan->save();
-
-    return redirect()->route('lapangan.index')
-                    ->with('success', 'Lapangan berhasil ditambahkan!');
-}
 
     public function edit(Lapangan $lapangan)
     {
         $this->authorize('partner');
+        
+        // ✅ Pastikan mitra hanya edit lapangannya sendiri
+        if ($lapangan->partner_id !== Auth::id()) {
+            abort(403, 'Anda tidak berhak mengedit lapangan ini.');
+        }
+
         return view('lapangan.partner.edit', compact('lapangan'));
     }
 
@@ -82,29 +100,36 @@ class LapanganController extends Controller
     {
         $this->authorize('partner');
         
-        // ✅ Perbaikan: validasi dengan TITIK DUA (:)
+        // ✅ Validasi lengkap
         $request->validate([
             'nama' => 'required|string|max:255',
-            'lokasi' => 'required|string|max:255', // ✅ required
-            'kapasitas' => 'nullable|integer|min:0', // ✅ min:0
-            'harga' => 'required|integer|min:0',
+            'lokasi' => 'required|string|max:255',
+            'kapasitas' => 'required|integer|min:1',
+            'harga' => 'required|integer|min:10000',
             'status' => 'required|in:aktif,nonaktif',
-            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // ✅ Perbaikan: gunakan only()
-        $data = $request->only(['nama', 'lokasi', 'kapasitas', 'harga', 'status']);
+        // ✅ Pastikan akses pemilik
+        if ($lapangan->partner_id !== Auth::id()) {
+            abort(403, 'Anda tidak berhak mengupdate lapangan ini.');
+        }
+
+        $lapangan->update([
+            'nama' => $request->nama,
+            'lokasi' => $request->lokasi,
+            'kapasitas' => $request->kapasitas,
+            'harga' => $request->harga,
+            'status' => $request->status,
+        ]);
 
         // Handle gambar
         if ($request->hasFile('gambar')) {
             if ($lapangan->gambar && Storage::disk('public')->exists($lapangan->gambar)) {
                 Storage::disk('public')->delete($lapangan->gambar);
             }
-            $path = $request->file('gambar')->store('lapangan', 'public');
-            $data['gambar'] = $path;
+            $lapangan->gambar = $request->file('gambar')->store('lapangan', 'public');
         }
-
-        $lapangan->update($data);
 
         return redirect()->route('partner.lapangan.index')
                         ->with('success', 'Lapangan "' . $lapangan->nama . '" berhasil diperbarui!');
@@ -114,9 +139,15 @@ class LapanganController extends Controller
     {
         $this->authorize('partner');
         
+        // ✅ Pastikan akses pemilik
+        if ($lapangan->partner_id !== Auth::id()) {
+            abort(403, 'Anda tidak berhak menghapus lapangan ini.');
+        }
+
         if ($lapangan->gambar && Storage::disk('public')->exists($lapangan->gambar)) {
             Storage::disk('public')->delete($lapangan->gambar);
         }
+
         $nama = $lapangan->nama;
         $lapangan->delete();
 
@@ -124,10 +155,11 @@ class LapanganController extends Controller
                         ->with('success', 'Lapangan "' . $nama . '" berhasil dihapus!');
     }
 
+    // ✅ Helper authorize sesuai aturan Anda
     private function authorize($role)
     {
-        if (!auth()->check() || auth()->user()->role !== $role) {
-            abort(403);
+        if (!Auth::check() || Auth::user()->role !== $role) {
+            abort(403, 'Akses ditolak.');
         }
     }
 }
