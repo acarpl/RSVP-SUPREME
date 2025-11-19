@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.app') {{-- Sesuaikan dengan layout utama Anda --}}
 
 @section('title', 'Daftar Lapangan')
 
@@ -16,7 +16,7 @@
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($lapangans as $lapangan)
-                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
                     @if($lapangan->gambar)
                         <div class="h-48 overflow-hidden">
                             <img src="{{ asset('storage/' . $lapangan->gambar) }}"
@@ -50,7 +50,7 @@
                             @endif
                         </div>
 
-                        <a href="{{ route('lapangan.show', $lapangan) }}"
+                        <a href="{{ route('field.show', $lapangan) }}"
                            class="mt-4 w-full block text-center bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition">
                             Lihat Detail & Pesan
                         </a>

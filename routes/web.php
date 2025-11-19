@@ -7,6 +7,7 @@ use App\Http\Controllers\LapanganController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\FieldController;
 use App\Models\Lapangan;
 
 /*
@@ -24,6 +25,10 @@ Route::get('/products', [ProductController::class, 'index'])->name('products.ind
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 
 Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers.index');
+
+Route::get('/lapangan', [LapanganController::class, 'customerIndex'])->name('lapangan.index');
+Route::get('/lapangan/{lapangan}', [LapanganController::class, 'customerShow'])->name('lapangan.show');
+
 
 
 /*
@@ -91,14 +96,16 @@ Route::middleware(['auth'])->group(function () {
             Route::delete('/{voucher}', [VoucherController::class, 'destroy'])->name('destroy');
         });
 
-        // Lapangan
-        Route::prefix('lapangan')->name('lapangan.')->group(function () {
-            Route::get('/', [LapanganController::class, 'index'])->name('index'); // DITAMBAH
-            Route::get('/create', [LapanganController::class, 'create'])->name('create');
-            Route::post('/', [LapanganController::class, 'store'])->name('store');
-            Route::get('/{lapangan}/edit', [LapanganController::class, 'edit'])->name('edit');
-            Route::put('/{lapangan}', [LapanganController::class, 'update'])->name('update');
-            Route::delete('/{lapangan}', [LapanganController::class, 'destroy'])->name('destroy');
+    Route::middleware(['auth', 'role:partner']) // ← sesuaikan middleware Anda
+        ->prefix('partner')
+        ->name('partner.')
+        ->group(function () {
+        Route::get('/lapangan', [LapanganController::class, 'index'])->name('lapangan.index');
+        Route::get('/lapangan/create', [LapanganController::class, 'create'])->name('lapangan.create');
+        Route::post('/lapangan', [LapanganController::class, 'store'])->name('lapangan.store');
+        Route::get('/lapangan/{lapangan}/edit', [LapanganController::class, 'edit'])->name('lapangan.edit');
+        Route::put('/lapangan/{lapangan}', [LapanganController::class, 'update'])->name('lapangan.update');
+        Route::delete('/lapangan/{lapangan}', [LapanganController::class, 'destroy'])->name('lapangan.destroy');
         });
     });
 

@@ -9,124 +9,131 @@ use Illuminate\Support\Str;
 
 class LapanganController extends Controller
 {
-    public function index()
+    // ✅ CUSTOMER: lihat daftar lapangan aktif
+    public function customerIndex()
     {
-        $lapangans = Lapangan::latest()->get();
+        $lapangans = Lapangan::where('status', 'aktif')->latest()->get();
         return view('lapangan.index', compact('lapangans'));
     }
 
-    public function create()
+    // ✅ CUSTOMER: lihat detail lapangan
+    public function customerShow(Lapangan $lapangan)
     {
-        return view('partner.lapangan.create');
+        if ($lapangan->status !== 'aktif') {
+            abort(404);
+        }
+        return view('lapangan.show', compact('lapangan'));
     }
 
-    // Menyimpan lapangan baru, menerima cropped_gambar (base64) dari form
+    // ✅ PARTNER: lihat semua lapangan (termasuk non-aktif)
+    public function index()
+    {
+        $lapangans = Lapangan::latest()->get();
+        return view('lapangan.partner.index', compact('lapangans'));
+    }
+
+    // ✅ PARTNER: form tambah
+    public function create()
+    {
+        return view('lapangan.partner.create');
+    }
+
+    // ✅ PARTNER: simpan
     public function store(Request $request)
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'lokasi' => 'nullable|string|max:255',
-            'kapasitas' => 'nullable|integer',
-            'harga' => 'nullable|numeric',
-            'cropped_gambar' => 'nullable|string', // base64
+            'kapasitas' => 'nullable|integer|min:1',
+            'harga' => 'required|numeric|min:0',
+            'status' => 'required|in:aktif,nonaktif',
+            'cropped_gambar' => 'nullable|string',
         ]);
 
-          $lapangan = new Lapangan();
-    $lapangan->nama = $request->nama; // ← pastikan ini ada
-    $lapangan->lokasi = $request->lokasi;
-    $lapangan->harga = $request->harga;
-    $lapangan->save();
-
-    return redirect()->route('lapangan.index');
-
         $path = null;
-
         if (!empty($validated['cropped_gambar'])) {
             $path = $this->saveBase64Image($validated['cropped_gambar']);
         }
 
-        $lapangan = Lapangan::create([
+        Lapangan::create([
             'nama' => $validated['nama'],
             'lokasi' => $validated['lokasi'] ?? null,
             'kapasitas' => $validated['kapasitas'] ?? null,
-            'harga' => $validated['harga'] ?? null,
+            'harga' => $validated['harga'],
+            'status' => $validated['status'],
             'gambar' => $path,
         ]);
 
-        return redirect()->route('lapangan.index')->with('success', 'Lapangan berhasil ditambahkan!');
+        return redirect()->route('partner.lapangan.index')
+                         ->with('success', 'Lapangan berhasil ditambahkan!');
     }
 
+    // ✅ PARTNER: form edit
     public function edit(Lapangan $lapangan)
     {
-        return view('lapangan.edit', compact('lapangan'));
+        return view('lapangan.partner.edit', compact('lapangan'));
     }
 
-    // Update lapangan, menangani gambar base64 dan hapus gambar lama bila perlu
+    // ✅ PARTNER: update
     public function update(Request $request, Lapangan $lapangan)
     {
         $validated = $request->validate([
             'nama' => 'required|string|max:255',
             'lokasi' => 'nullable|string|max:255',
-            'kapasitas' => 'nullable|integer',
-            'harga' => 'nullable|numeric',
-            'cropped_gambar' => 'nullable|string', // base64
+            'kapasitas' => 'nullable|integer|min:1',
+            'harga' => 'required|numeric|min:0',
+            'status' => 'required|in:aktif,nonaktif',
+            'cropped_gambar' => 'nullable|string',
         ]);
 
-        // Jika ada gambar baru (base64), simpan dan hapus yang lama
+        // Handle gambar baru
         if (!empty($validated['cropped_gambar'])) {
             $newPath = $this->saveBase64Image($validated['cropped_gambar']);
-
-            // hapus gambar lama jika ada
+            // Hapus gambar lama
             if ($lapangan->gambar && Storage::disk('public')->exists($lapangan->gambar)) {
                 Storage::disk('public')->delete($lapangan->gambar);
             }
-
             $lapangan->gambar = $newPath;
         }
 
-        // update field lain
-        $lapangan->nama = $validated['nama'];
-        $lapangan->lokasi = $validated['lokasi'] ?? $lapangan->lokasi;
-        $lapangan->kapasitas = $validated['kapasitas'] ?? $lapangan->kapasitas;
-        $lapangan->harga = $validated['harga'] ?? $lapangan->harga;
+        $lapangan->update([
+            'nama' => $validated['nama'],
+            'lokasi' => $validated['lokasi'] ?? $lapangan->lokasi,
+            'kapasitas' => $validated['kapasitas'] ?? $lapangan->kapasitas,
+            'harga' => $validated['harga'],
+            'status' => $validated['status'],
+        ]);
 
-        $lapangan->save();
-
-        return redirect()->route('lapangan.index')->with('success', 'Lapangan berhasil diperbarui!');
+        return redirect()->route('partner.lapangan.index')
+                         ->with('success', 'Lapangan berhasil diperbarui!');
     }
 
+    // ✅ PARTNER: hapus
     public function destroy(Lapangan $lapangan)
     {
-        // Hapus gambar jika ada
         if ($lapangan->gambar && Storage::disk('public')->exists($lapangan->gambar)) {
             Storage::disk('public')->delete($lapangan->gambar);
         }
-
         $lapangan->delete();
 
-        return redirect()->route('lapangan.index')->with('success', 'Lapangan berhasil dihapus!');
+        return redirect()->route('partner.lapangan.index')
+                         ->with('success', 'Lapangan berhasil dihapus!');
     }
 
-    /**
-     * Helper: simpan gambar yang dikirim sebagai data URL (base64).
-     * Mengembalikan path relatif yang disimpan di disk 'public', contohnya 'lapangan/xyz.png'
-     */
+    // ✅ Helper: simpan base64 ke storage
     protected function saveBase64Image(string $dataUrl)
     {
-        // format: data:image/png;base64,AAA...
         if (preg_match('/^data:image\/(\w+);base64,/', $dataUrl, $type)) {
             $imageData = substr($dataUrl, strpos($dataUrl, ',') + 1);
             $imageData = base64_decode($imageData);
             $extension = strtolower($type[1]);
             if (!in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
-                // fallback
                 $extension = 'png';
             }
             $filename = 'lapangan/' . Str::random(20) . '.' . $extension;
             Storage::disk('public')->put($filename, $imageData);
             return $filename;
         }
-
         return null;
     }
 }
