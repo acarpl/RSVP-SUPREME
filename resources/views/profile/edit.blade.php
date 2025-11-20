@@ -185,4 +185,5 @@ document.getElementById('deleteForm')?.addEventListener('submit', function(e) {
 });
 </script>
 @endpush
-@endsections
+
+@endsection
