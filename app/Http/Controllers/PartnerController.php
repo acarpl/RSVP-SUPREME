@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\PartnerDashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -40,6 +41,11 @@ class PartnerController extends Controller
             ->route('profile.edit')
             ->with('success', 'Pendaftaran Mitra Berhasil! Selamat, Anda sekarang adalah Mitra Sportykuy.');
     }
+
+    public function dashboard()
+{
+    return (new PartnerDashboardController())->index();
+}
 
      public function leave()
     {

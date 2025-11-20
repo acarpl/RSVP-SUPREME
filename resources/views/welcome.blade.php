@@ -118,7 +118,7 @@
 
                             {{-- PARTNER --}}
                             @elseif(auth()->user()->role === 'partner')
-                                <a href="{{ route('lapangan.index') }}" 
+                                <a href="{{ route('partner.dashboard') }}" 
                                     class="btn btn-success px-4 py-2 me-2">
                                     <i class="fas fa-edit me-1"></i> Kelola Lapangan
                                 </a>

@@ -7,6 +7,7 @@ use App\Http\Controllers\LapanganController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\PartnerController;
 use App\Models\Lapangan;
 
 /*
@@ -79,7 +80,7 @@ Route::middleware(['auth'])->group(function () {
     */
     Route::middleware('role:partner')->prefix('partner')->name('partner.')->group(function () {
         // Dashboard partner
-        Route::get('/dashboard', [ProfileController::class, 'partnerDashboard'])->name('dashboard');
+        Route::get('/dashboard', [PartnerController::class, 'dashboard'])->name('dashboard');
         Route::post('/leave', [ProfileController::class, 'leavePartner'])->name('leave');
 
         // Manage Product
