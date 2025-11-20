@@ -9,14 +9,14 @@ use Illuminate\Support\Facades\Auth;
 
 class PartnerDashboardController extends Controller
 {
-    public function index()
+public function index()
 {
     $user = Auth::user();
     
-    // ✅ Perbaikan: Ambil lapangan milik mitra
+    // ✅ Hanya ambil lapangan milik mitra yang sedang login
     $lapanganIds = Lapangan::where('user_id', $user->id)->pluck('id');
 
-    // Statistik
+    // Statistik hanya untuk lapangan miliknya
     $totalLapangan = $lapanganIds->count();
     $totalBooking = Booking::whereIn('lapangan_id', $lapanganIds)->count();
     $bookingAktif = Booking::whereIn('lapangan_id', $lapanganIds)
@@ -24,14 +24,14 @@ class PartnerDashboardController extends Controller
     $pendapatan = Booking::whereIn('lapangan_id', $lapanganIds)
                         ->where('status', 'confirmed')->sum('total_price');
 
-    // Ambil 5 booking terbaru
+    // Ambil 5 booking terbaru untuk lapangan miliknya
     $latestBookings = Booking::whereIn('lapangan_id', $lapanganIds)
                             ->with('lapangan')
                             ->latest()
                             ->take(5)
                             ->get();
 
-    // Data chart
+    // Data chart 7 hari
     $bookingsChart = [];
     for ($i = 6; $i >= 0; $i--) {
         $date = now()->subDays($i)->format('Y-m-d');

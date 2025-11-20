@@ -6,25 +6,30 @@
 <div class="container py-4">
     <!-- Header -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-        <div>
-            <h1 class="fw-bold text-brand mb-1">
-                <i class="fas fa-chart-line me-2"></i> Dashboard Mitra
-            </h1>
-            <p class="text-muted mb-0">
-                Halo, <strong>{{ auth()->user()->nama_usaha ?? auth()->user()->name }}</strong>!
-            </p>
-        </div>
-        <div>
-            <a href="{{ route('partner.lapangan.index') }}" class="btn btn-brand px-4 py-2">
-                <i class="fas fa-futbol me-1"></i> Kelola Lapangan
-            </a>
-        </div>
-        <div>
-            <a href="{{ route('products.index') }}" class="btn btn-brand px-4 py-2">
-                <i class="fas fa-product me-1"></i> Kelola Product
-            </a>
-        </div>
+
+    <!-- KIRI: Judul & Salam -->
+    <div class="mb-3 mb-md-0">
+        <h1 class="fw-bold text-brand mb-1">
+            <i class="fas fa-chart-line me-2"></i> Dashboard Mitra
+        </h1>
+        <p class="text-muted mb-0">
+            Halo, <strong>{{ auth()->user()->nama_usaha ?? auth()->user()->name }}</strong>!
+        </p>
     </div>
+
+    <!-- KANAN: Tombol -->
+    <div class="d-flex gap-2">
+        <a href="{{ route('partner.lapangan.index') }}" class="btn btn-brand px-4 py-2">
+            <i class="fas fa-futbol me-1"></i> Kelola Lapangan
+        </a>
+
+        <a href="{{ route('partner.products.manage') }}" class="btn btn-brand px-4 py-2">
+            <i class="fas fa-store me-1"></i> Kelola Product
+        </a>
+    </div>
+
+</div>
+
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -96,7 +101,7 @@
                         </div>
                         <div class="bg-brand bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" 
                              style="width: 50px; height: 50px;">
-                            <i class="fa-solid fa-wallet text-brand fa-lg"></i>
+                            <i class="fas fa-wallet text-light fa-lg"></i>
                         </div>
                     </div>
                     <small class="text-muted">Booking terkonfirmasi</small>

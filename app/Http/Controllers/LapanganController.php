@@ -34,17 +34,17 @@ class LapanganController extends Controller
     // PARTNER ONLY
     // ===============
 
-    public function index()
-    {
-        $this->authorize('partner');
-        
-        // ✅ Hanya tampilkan lapangan milik partner yang sedang login
-        $lapangans = Lapangan::where('partner_id', Auth::id())
-                             ->latest()
-                             ->paginate(9); // ✅ pagination
+public function index()
+{
+    $this->authorize('partner');
+    
+    // ✅ Hanya tampilkan lapangan milik sendiri
+    $lapangans = Lapangan::where('user_id', Auth::id())
+                         ->latest()
+                         ->paginate(10);
 
-        return view('lapangan.partner.index', compact('lapangans'));
-    }
+    return view('lapangan.partner.index', compact('lapangans'));
+}
 
     public function create()
     {
@@ -53,36 +53,35 @@ class LapanganController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $this->authorize('partner');
-        
-        $request->validate([
-            'nama' => 'required|string|max:255',
-            'lokasi' => 'required|string|max:255',
-            'kapasitas' => 'required|integer|min:1', // ✅ required & min:1
-            'harga' => 'required|integer|min:10000', // ✅ min:10.000
-            'status' => 'required|in:aktif,nonaktif',
-            'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
+{
+    $this->authorize('partner');
+    
+    $request->validate([
+        'nama' => 'required|string|max:255',
+        'lokasi' => 'required|string|max:255',
+        'kapasitas' => 'required|integer|min:1',
+        'harga' => 'required|integer|min:10000',
+        'status' => 'required|in:aktif,nonaktif',
+        'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
 
-        $lapangan = new Lapangan();
-        $lapangan->partner_id = Auth::id(); // ✅ otomatis set partner
-        $lapangan->nama = $request->nama;
-        $lapangan->lokasi = $request->lokasi;
-        $lapangan->kapasitas = $request->kapasitas;
-        $lapangan->harga = $request->harga;
-        $lapangan->status = $request->status;
+    $lapangan = new Lapangan();
+    $lapangan->user_id = Auth::id(); // ✅ Otomatis set mitra
+    $lapangan->nama = $request->nama;
+    $lapangan->lokasi = $request->lokasi;
+    $lapangan->kapasitas = $request->kapasitas;
+    $lapangan->harga = $request->harga;
+    $lapangan->status = $request->status;
 
-        if ($request->hasFile('gambar')) {
-            $lapangan->gambar = $request->file('gambar')->store('lapangan', 'public');
-        }
-
-        $lapangan->save();
-
-        // ✅ Redirect ke halaman partner (bukan lapangan.index)
-        return redirect()->route('partner.lapangan.index')
-                        ->with('success', 'Lapangan berhasil ditambahkan!');
+    if ($request->hasFile('gambar')) {
+        $lapangan->gambar = $request->file('gambar')->store('lapangans', 'public');
     }
+
+    $lapangan->save();
+
+    return redirect()->route('partner.lapangan.index')
+                    ->with('success', 'Lapangan "' . $lapangan->nama . '" berhasil ditambahkan!');
+}
 
     public function edit(Lapangan $lapangan)
     {

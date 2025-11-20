@@ -5,7 +5,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="d-flex align-items-center mb-4">
-                <a href="{{ route('products.index') }}" class="btn btn-outline-brand rounded-circle me-3" title="Kembali">
+                <a href="{{ route('partner.products.manage') }}" class="btn btn-outline-brand rounded-circle me-3" title="Kembali">
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 <div>

@@ -22,8 +22,10 @@
         }
 
         .bg-brand { background-color: #D85C5C !important; }
+
         .text-brand { color: #D85C5C !important; }
 
+        .border-brand { border-color: #D85C5C !important; }
         .btn-brand {
             background-color: #D85C5C;
             border-color: #D85C5C;
@@ -103,7 +105,7 @@
         /* Dropdown Cart */
         [x-cloak] { display: none !important; }
     </style>
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <!-- AlpineJS -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
 </head>

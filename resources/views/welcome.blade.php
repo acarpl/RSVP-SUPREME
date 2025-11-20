@@ -120,15 +120,8 @@
                             @elseif(auth()->user()->role === 'partner')
                                 <a href="{{ route('partner.dashboard') }}" 
                                     class="btn btn-success px-4 py-2 me-2">
-                                    <i class="fas fa-edit me-1"></i> Kelola Lapangan
+                                    <i class="fas fa-edit me-1"></i> Halaman Mitra
                                 </a>
-
-                                <form action="{{ route('partner.leave') }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button class="btn btn-danger px-4 py-2">
-                                        <i class="fas fa-sign-out-alt me-1"></i> Keluar Partner
-                                    </button>
-                                </form>
 
                             {{-- SUPER ADMIN --}}
                             @elseif(auth()->user()->role === 'super_admin')
