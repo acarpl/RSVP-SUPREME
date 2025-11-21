@@ -16,7 +16,7 @@
 
             <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
                 <div class="card-body p-4 p-md-5">
-                    <form action="{{ route('products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('partner.products.update', $product->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 

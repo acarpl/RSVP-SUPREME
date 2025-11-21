@@ -7,6 +7,9 @@
     <!-- Header -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
         <div>
+            <a href="{{ route('partner.dashboard') }}" class="btn btn-outline-brand rounded-circle me-3">
+            <i class="fas fa-arrow-left"></i>
+            </a>
             <h1 class="fw-bold text-brand mb-1">
                 <i class="fas fa-tools me-2"></i> Kelola Lapangan
             </h1>

@@ -6,6 +6,7 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
+
             <!-- Header -->
             <div class="d-flex align-items-center mb-4">
                 <a href="{{ url()->previous() }}" class="btn btn-outline-brand rounded-circle me-3">
@@ -18,6 +19,7 @@
             </div>
 
             <div class="row g-4">
+
                 <!-- Card Profil -->
                 <div class="col-md-5">
                     <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
@@ -35,6 +37,7 @@
 
                         <div class="card-body pt-5 text-center">
                             <h4 class="mb-1">{{ auth()->user()->name }}</h4>
+
                             <div class="mb-3">
                                 <span class="badge 
                                     @if(auth()->user()->role === 'partner') bg-success text-white
@@ -51,16 +54,45 @@
                                 </div>
                             @endif
 
-                            <div class="d-grid gap-2">
+                            <div class="d-grid gap-2 mb-3">
                                 <a href="{{ route('booking.index') }}" class="btn btn-outline-brand">
                                     <i class="fas fa-calendar-check me-1"></i> Riwayat Booking
                                 </a>
+
                                 @if(auth()->user()->role === 'customer')
                                     <a href="{{ route('partner.form') }}" class="btn btn-brand">
                                         <i class="fas fa-users me-1"></i> Gabung Jadi Mitra
                                     </a>
                                 @endif
                             </div>
+
+                            <!-- 🔥 SHORTCUT KHUSUS PARTNER (OPSI A) -->
+                            @if(auth()->user()->role === 'partner')
+                            <div class="mt-3 p-3 bg-light rounded-3 border small text-start">
+
+                                <p class="fw-bold text-brand mb-2">
+                                    <i class="fas fa-bolt me-1"></i> Shortcut Mitra
+                                </p>
+
+                                <div class="d-grid gap-2">
+
+                                    <a href="{{ route('partner.dashboard') }}" class="btn btn-outline-brand btn-sm">
+                                        <i class="fas fa-chart-line me-1"></i> Dashboard Mitra
+                                    </a>
+
+                                    <a href="{{ route('partner.lapangan.index') }}" class="btn btn-outline-brand btn-sm">
+                                        <i class="fas fa-futbol me-1"></i> Kelola Lapangan
+                                    </a>
+
+                                    <a href="{{ route('partner.products.manage') }}" class="btn btn-outline-brand btn-sm">
+                                        <i class="fas fa-store me-1"></i> Kelola Produk
+                                    </a>
+
+                                </div>
+                            </div>
+                            @endif
+                            <!-- END SHORTCUT -->
+
                         </div>
                     </div>
                 </div>
@@ -102,7 +134,7 @@
                                     @enderror
                                 </div>
 
-                                <!-- Password (opsional) -->
+                                <!-- Password -->
                                 <div class="mb-4">
                                     <label class="form-label fw-medium">Password Baru <small class="text-muted">(opsional)</small></label>
                                     <input type="password" 
@@ -130,6 +162,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -140,7 +173,9 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title text-danger"><i class="fas fa-exclamation-triangle me-2"></i> Hapus Akun</h5>
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Hapus Akun
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -150,11 +185,12 @@
                 <ul class="small text-muted">
                     <li>Menghapus semua data pribadi</li>
                     <li>Membatalkan booking aktif</li>
-                    <li>Menghapus akses ke lapangan/mitra</li>
+                    <li>Menghapus akses ke lapangan / mitra</li>
                 </ul>
                 <p class="mt-2">
                     Ketik <code>{{ auth()->user()->email }}</code> untuk konfirmasi:
                 </p>
+
                 <form method="POST" action="{{ route('profile.destroy') }}" id="deleteForm">
                     @csrf
                     @method('DELETE')
@@ -174,7 +210,6 @@
 
 @push('scripts')
 <script>
-// Validasi konfirmasi email
 document.getElementById('deleteForm')?.addEventListener('submit', function(e) {
     const input = this.querySelector('[name="confirm_email"]');
     if (input.value !== '{{ auth()->user()->email }}') {

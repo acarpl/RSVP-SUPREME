@@ -59,19 +59,22 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/daftar-mitra', [ProfileController::class, 'partnerForm'])->name('partner.form');
     Route::post('/daftar-mitra', [ProfileController::class, 'registerPartner'])->name('partner.register');
 
-    // BOOKING
-    Route::prefix('booking')->name('booking.')->group(function () {
-        Route::get('/', [BookingController::class, 'index'])->name('index');
-        Route::get('/lapangan/{lapangan}/order-now', [BookingController::class, 'orderNow'])->name('order-now');
-        Route::post('/lapangan/{lapangan}/order-now', [BookingController::class, 'storeOrderNow'])->name('order-now.store');
-        Route::get('/from-cart', [BookingController::class, 'createFromCart'])->name('cart');
-        Route::post('/from-cart', [BookingController::class, 'storeFromCart'])->name('cart.store');
-        Route::get('/{booking}/checkout', [BookingController::class, 'checkout'])->name('checkout');
-        Route::post('/{booking}/confirm', [BookingController::class, 'confirm'])->name('confirm');
-        Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
-        Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
-        Route::get('/{booking}/receipt', [BookingController::class, 'receipt'])->name('receipt');
-    });
+    // Booking & Payment
+Route::middleware(['auth'])->prefix('payment')->name('payment.')->group(function () {
+    // Direct to booking form
+    Route::get('/lapangan/{lapanganId}/pay', [PaymentController::class, 'create'])->name('create');
+    
+    // Process booking & redirect to Midtrans
+    Route::post('/lapangan/{lapanganId}/pay', [PaymentController::class, 'store'])->name('store');
+    
+    // Midtrans Snap
+    Route::get('/booking/{booking}/process', [PaymentController::class, 'process'])->name('process');
+    
+    // Callback
+    Route::post('/notification', [PaymentController::class, 'notification'])->name('notification');
+    Route::get('/finish', [PaymentController::class, 'finish'])->name('finish');
+    Route::get('/error', [PaymentController::class, 'error'])->name('error');
+});
 
     /*
     |--------------------------------------------------------------------------

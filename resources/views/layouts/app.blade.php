@@ -104,6 +104,67 @@
 
         /* Dropdown Cart */
         [x-cloak] { display: none !important; }
+
+        /* ============================
+   RESPONSIVE MOBILE IMPROVEMENTS
+   ============================ */
+@media (max-width: 576px) {
+
+    /* Padding halaman */
+    main.container {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    /* Heading lebih kecil */
+    h1, h2, h3 {
+        font-size: 1.3rem !important;
+    }
+
+    h4, h5 {
+        font-size: 1.05rem !important;
+    }
+
+    /* Card lebih slim */
+    .card {
+        border-radius: 14px !important;
+        padding: 0.75rem !important;
+    }
+
+    /* Form dan input */
+    .form-control,
+    .form-select {
+        font-size: 0.9rem !important;
+        padding: 0.55rem 0.75rem !important;
+    }
+
+    button.btn,
+    .btn {
+        font-size: 0.9rem !important;
+        padding: 0.55rem !important;
+        border-radius: 10px !important;
+    }
+
+    /* Footer kecil */
+    footer {
+        font-size: 0.75rem;
+    }
+
+    /* Jarak konten bawah biar ga numpuk sama bottom nav */
+    body {
+        padding-bottom: 90px !important;
+    }
+
+    /* Navbar mobile icons */
+    .bottom-nav .nav-link i {
+        font-size: 1.1rem !important;
+    }
+
+    .bottom-nav .nav-link span {
+        font-size: 0.7rem !important;
+    }
+}
+
     </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <!-- AlpineJS -->
