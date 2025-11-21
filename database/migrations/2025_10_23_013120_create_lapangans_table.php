@@ -15,7 +15,7 @@ return new class extends Migration
             $table->integer('kapasitas')->nullable();
             $table->integer('harga')->nullable();
             $table->string('gambar')->nullable();
-            $table->string('status')->default('aktif'); // ✅ tambahkan kolom
+            $table->string('status')->default('aktif');
             $table->timestamps();
         });
     }

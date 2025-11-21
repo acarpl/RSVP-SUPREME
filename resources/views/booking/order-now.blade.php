@@ -41,13 +41,26 @@
                         </p>
                         <div class="bg-light rounded-2 p-3">
                             <div class="d-flex justify-content-center align-items-baseline">
-                                <span class="fw-bold text-primary fs-2">Rp {{ number_format($lapangan->harga) }}</span>
+                                <span class="fw-bold text-primary fs-2">Rp {{ number_format($lapangan->harga, 0, ',', '.') }}</span>
                                 <span class="text-muted ms-2">/ jam</span>
                             </div>
                         </div>
                     </div>
 
-                    <form action="{{ route('payment.create', $lapangan->id) }}" method="POST">
+                    {{-- ✅ TAMPILKAN ERROR SECARA EKSPLISIT --}}
+                    @if ($errors->any())
+                        <div class="alert alert-danger rounded-2 mb-4">
+                            <h6 class="fw-bold mb-2"><i class="fas fa-exclamation-circle me-1"></i> Mohon perbaiki data berikut:</h6>
+                            <ul class="mb-0 ps-3">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    {{-- ✅ PERBAIKAN UTAMA: ganti route dari 'payment.create' → 'payment.store' --}}
+                    <form action="{{ route('payment.store', $lapangan->id) }}" method="POST">
                         @csrf
 
                         <!-- Tanggal & Jam -->
@@ -79,7 +92,7 @@
                                                 @php $time = sprintf('%02d:%02d', $h, $m); @endphp
                                                 <option value="{{ $time }}" 
                                                         {{ old('jam_mulai', '18:00') == $time ? 'selected' : '' }}>
-                                                    {{ $h }}:{{ $m == 0 ? '00' : $m }}
+                                                    {{ $h }}.{{ $m == 0 ? '00' : $m }}
                                                 </option>
                                             @endfor
                                         @endfor
@@ -114,26 +127,28 @@
                             
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Harga per jam</span>
-                                <span class="fw-bold">Rp {{ number_format($lapangan->harga) }}</span>
+                                <span class="fw-bold">Rp {{ number_format($lapangan->harga, 0, ',', '.') }}</span>
                             </div>
                             
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Durasi</span>
-                                <span id="durasiText">2 jam</span>
+                                <span id="durasiText">{{ old('durasi', 2) }} jam</span>
                             </div>
                             
                             <hr>
                             
                             <div class="d-flex justify-content-between fw-bold fs-5">
                                 <span>Total:</span>
-                                <span id="totalHarga">Rp {{ number_format($lapangan->harga * 2) }}</span>
+                                <span id="totalHarga">
+                                    Rp {{ number_format($lapangan->harga * (old('durasi', 2)), 0, ',', '.') }}
+                                </span>
                             </div>
                         </div>
 
                         <!-- Submit -->
                         <div class="mt-4">
                             <button type="submit" class="btn btn-brand w-100 py-3 fs-5">
-                                <i class="fas fa-credit-card me-2"></i> Bayar Sekarang
+                                <i class="fas fa-credit-card me-2"></i> Lanjut ke Pembayaran
                             </button>
                             <div class="text-center mt-2">
                                 <small class="text-muted">

@@ -7,7 +7,7 @@ use App\Models\Lapangan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Midtrans\Config;
-use Midtrans\Snap;
+use Midtrans\Transaction;
 
 class PaymentController extends Controller
 {
@@ -16,43 +16,33 @@ class PaymentController extends Controller
         // Konfigurasi Midtrans
         Config::$serverKey = config('midtrans.server_key');
         Config::$isProduction = config('midtrans.is_production');
-        Config::$isSanitized = true;
-        Config::$is3ds = true;
+        Config::$isSanitized = config('midtrans.is_sanitized');
+        Config::$is3ds = config('midtrans.is_3ds');
     }
 
-    /**
-     * Langkah 1: Buat transaksi & redirect ke Midtrans
-     */
     public function create($lapanganId)
     {
-        // Validasi lapangan
         $lapangan = Lapangan::findOrFail($lapanganId);
         if ($lapangan->status !== 'aktif') {
             abort(404, 'Lapangan tidak tersedia.');
         }
-
-        // Redirect ke halaman booking form
         return view('booking.order-now', compact('lapangan'));
     }
 
-    /**
-     * Langkah 2: Proses pembayaran setelah form submit
-     */
     public function store(Request $request, $lapanganId)
     {
-        // Validasi input
         $request->validate([
-            'tanggal' => 'required|date|after_or_equal:today',
-            'jam_mulai' => 'required|date_format:H:i',
-            'durasi' => 'required|integer|min:1|max:12',
-        ]);
+    'tanggal' => 'required|date|after_or_equal:today',
+    'jam_mulai' => 'required|date_format:H:i',
+    'durasi' => 'required|integer|min:1|max:12', // ✅
+]);
 
         $lapangan = Lapangan::findOrFail($lapanganId);
         $jamMulai = $request->jam_mulai;
         $jamSelesai = date('H:i', strtotime("$jamMulai +{$request->durasi} hours"));
 
-        // Cek ketersediaan jadwal
-        $isAvailable = !Booking::where('lapangan_id', $lapangan->id)
+        // Cek ketersediaan
+        $bentrok = Booking::where('lapangan_id', $lapangan->id)
             ->where('tanggal', $request->tanggal)
             ->where('status', '!=', 'dibatalkan')
             ->where(function ($q) use ($jamMulai, $jamSelesai) {
@@ -64,10 +54,8 @@ class PaymentController extends Controller
                   });
             })->exists();
 
-        if (!$isAvailable) {
-            return back()->withErrors([
-                'jam_mulai' => 'Jadwal bentrok. Silakan pilih waktu lain.'
-            ])->withInput();
+        if ($bentrok) {
+            return back()->withErrors(['jam_mulai' => 'Jadwal bentrok.']);
         }
 
         // Buat booking
@@ -82,106 +70,120 @@ class PaymentController extends Controller
             'status' => 'menunggu_pembayaran',
         ]);
 
-        // Redirect ke pembayaran Midtrans
-        return redirect()->route('payment.process', $booking);
+        // Redirect ke halaman redirect (akan generate SNAP URL)
+        return redirect()->route('payment.redirect', $booking);
     }
 
-    /**
-     * Langkah 3: Initiate Midtrans Snap
-     */
-    public function process(Booking $booking)
+    // ✅ GENERATE SNAP REDIRECT URL (bukan token)
+    public function redirect(Booking $booking)
     {
-        // Validasi booking milik user
         if ($booking->user_id !== Auth::id() || $booking->status !== 'menunggu_pembayaran') {
             abort(403, 'Booking tidak valid.');
         }
 
-        // Data transaksi
-        $transactionDetails = [
-            'order_id' => 'SPORTYKUY-' . $booking->id . '-' . time(),
-            'gross_amount' => $booking->total_harga,
-        ];
+        // Buat order_id unik
+        $orderId = 'SPORTY-' . now()->format('YmdHis') . '-' . $booking->id;
 
-        $itemDetails = [
-            [
-                'id' => 'booking-' . $booking->id,
-                'price' => $booking->total_harga,
-                'quantity' => 1,
-                'name' => 'Booking ' . $booking->lapangan->nama . ' (' . $booking->durasi . ' jam)',
-            ]
-        ];
-
-        $customerDetails = [
-            'first_name' => Auth::user()->name,
-            'email' => Auth::user()->email,
-            'phone' => Auth::user()->phone ?? '081234567890',
-        ];
-
-        $params = [
-            'transaction_details' => $transactionDetails,
-            'item_details' => $itemDetails,
-            'customer_details' => $customerDetails,
-            'enabled_payments' => ['gopay', 'bank_transfer', 'credit_card', 'bca_va', 'bni_va', 'bri_va'],
+        $payload = [
+            'transaction_details' => [
+                'order_id' => $orderId,
+                'gross_amount' => (int) $booking->total_harga,
+            ],
+            'customer_details' => [
+                'first_name' => Auth::user()->name,
+                'email' => Auth::user()->email,
+                'phone' => Auth::user()->phone ?: '081234567890',
+            ],
+            'item_details' => [
+                [
+                    'id' => 'booking-' . $booking->id,
+                    'price' => (int) $booking->total_harga,
+                    'quantity' => 1,
+                    'name' => 'Booking ' . $booking->lapangan->nama,
+                ]
+            ],
+            // ✅ Redirect URLs (wajib untuk redirect mode)
+            'credit_card' => [
+                'secure' => true,
+            ],
         ];
 
         try {
-            $snapToken = Snap::getSnapToken($params);
+            // ✅ Dapatkan SNAP redirect URL
+            $snapUrl = \Midtrans\Snap::createTransaction($payload)->redirect_url;
 
-            // Simpan data transaksi
+            // Simpan order_id
             $booking->update([
-                'snap_token' => $snapToken,
-                'order_id' => $transactionDetails['order_id'],
+                'order_id' => $orderId,
             ]);
 
-            return view('payment.create', compact('booking', 'snapToken'));
+            // ✅ Redirect ke Midtrans (bukan ke halaman internal)
+            return redirect()->away($snapUrl);
 
         } catch (\Exception $e) {
-            \Log::error('Midtrans Error: ' . $e->getMessage());
-            return back()->withErrors('Gagal membuat transaksi. Coba lagi nanti.');
+            \Log::error('Midtrans Redirect Error', [
+                'message' => $e->getMessage(),
+                'booking_id' => $booking->id,
+            ]);
+
+            return back()->withErrors('Gagal membuka halaman pembayaran: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Langkah 4: Callback dari Midtrans
-     */
-    public function notification(Request $request)
+    // ✅ CEK STATUS SETELAH REDIRECT KE /finish
+    public function finish(Booking $booking)
     {
-        $payload = $request->json()->all();
-        $orderId = $payload['order_id'] ?? null;
-        $transactionStatus = $payload['transaction_status'] ?? null;
-        $fraudStatus = $payload['fraud_status'] ?? null;
-
-        // Cari booking
-        $booking = Booking::where('order_id', $orderId)->first();
-        if (!$booking) return response('Booking not found', 404);
-
-        // Update status
-        if ($transactionStatus == 'capture' && $fraudStatus == 'accept') {
-            $booking->update(['status' => 'dibayar']);
-        } elseif ($transactionStatus == 'settlement') {
-            $booking->update(['status' => 'dibayar']);
-        } elseif ($transactionStatus == 'cancel' || $transactionStatus == 'expire') {
-            $booking->update(['status' => 'dibatalkan']);
+        // Validasi kepemilikan
+        if ($booking->user_id !== Auth::id()) {
+            abort(403);
         }
 
-        return response('OK', 200);
+        try {
+            // ✅ Ambil status terkini dari Midtrans (server-to-server)
+            $status = Transaction::status($booking->order_id);
+
+            \Log::info('Midtrans status check', [
+                'order_id' => $booking->order_id,
+                'transaction_status' => $status->transaction_status ?? 'unknown',
+                'fraud_status' => $status->fraud_status ?? 'accept',
+            ]);
+
+            // Update status berdasarkan respons
+            $newStatus = 'menunggu_pembayaran';
+            $transactionStatus = $status->transaction_status ?? 'unknown';
+            $fraudStatus = $status->fraud_status ?? 'accept';
+
+            if (in_array($transactionStatus, ['capture', 'settlement']) && $fraudStatus === 'accept') {
+                $newStatus = 'dibayar';
+            } elseif (in_array($transactionStatus, ['cancel', 'expire'])) {
+                $newStatus = 'dibatalkan';
+            }
+
+            $booking->update(['status' => $newStatus]);
+
+            // Redirect ke halaman sukses/booking detail
+            if ($newStatus === 'dibayar') {
+                return redirect()->route('booking.show', $booking)
+                    ->with('success', '✅ Pembayaran berhasil! Booking Anda dikonfirmasi.');
+            } else {
+                return redirect()->route('booking.show', $booking)
+                    ->with('warning', 'ℹ️ Status: ' . $newStatus);
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Finish check error', [
+                'booking_id' => $booking->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->route('booking.show', $booking)
+                ->with('error', 'Gagal memeriksa status pembayaran. Silakan cek email/notifikasi.');
+        }
     }
 
-    /**
-     * Langkah 5: Redirect setelah pembayaran
-     */
-    public function finish(Request $request)
-    {
-        $orderId = $request->order_id;
-        $booking = Booking::where('order_id', $orderId)->firstOrFail();
-
-        return redirect()->route('booking.show', $booking)
-                        ->with('success', 'Pembayaran berhasil! Booking Anda dikonfirmasi.');
-    }
-
-    public function error(Request $request)
+    public function error()
     {
         return redirect()->route('booking.index')
-                        ->withErrors('Pembayaran dibatalkan atau gagal.');
+            ->withErrors('Pembayaran dibatalkan atau gagal.');
     }
 }

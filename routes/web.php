@@ -61,14 +61,26 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/daftar-mitra', [ProfileController::class, 'registerPartner'])->name('partner.register');
 
     // ✅ PAYMENT ROUTES — DI LUAR GROUP LAIN (TANPA DUPLIKASI)
-    Route::prefix('payment')->name('payment.')->group(function () {
-        Route::get('/lapangan/{lapanganId}/pay', [PaymentController::class, 'create'])->name('create');
-        Route::post('/lapangan/{lapanganId}/pay', [PaymentController::class, 'store'])->name('store');
-        Route::get('/booking/{booking}/process', [PaymentController::class, 'process'])->name('process');
-        Route::post('/notification', [PaymentController::class, 'notification'])->name('notification');
-        Route::get('/finish', [PaymentController::class, 'finish'])->name('finish');
-        Route::get('/error', [PaymentController::class, 'error'])->name('error');
-    });
+    Route::middleware(['web', 'auth'])->group(function () {
+    // Booking form
+    Route::get('/booking/lapangan/{lapanganId}/order-now', [PaymentController::class, 'create'])
+         ->name('booking.order-now');
+
+    // Proses booking → generate SNAP redirect URL
+    Route::post('/payment/lapangan/{lapanganId}/pay', [PaymentController::class, 'store'])
+         ->name('payment.store');
+
+    // Redirect ke SNAP (Midtrans)
+    Route::get('/payment/redirect/{booking}', [PaymentController::class, 'redirect'])
+         ->name('payment.redirect');
+
+    // Setelah bayar → cek status & update
+    Route::get('/payment/finish/{booking}', [PaymentController::class, 'finish'])
+         ->name('payment.finish');
+
+    Route::get('/payment/error', [PaymentController::class, 'error'])
+         ->name('payment.error');
+});
 
     Route::middleware(['auth'])->group(function () {
     // ✅ Booking routes
