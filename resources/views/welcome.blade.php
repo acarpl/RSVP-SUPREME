@@ -19,7 +19,7 @@
             {{-- 🔥 GRID LAPANGAN DINAMIS --}}
             <div class="row g-3 justify-content-center">
 
-                @forelse($lapangan as $item)
+                @forelse($lapangans as $item)
                     <div class="col-md-4">
 
                         @component('components.field-card')

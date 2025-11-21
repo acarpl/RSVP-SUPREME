@@ -8,6 +8,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\PaymentController; // ✅ Tambahkan ini
 use App\Models\Lapangan;
 
 /*
@@ -17,8 +18,8 @@ use App\Models\Lapangan;
 */
 
 Route::get('/', function () {
-    $lapangan = Lapangan::latest()->take(6)->get(); 
-    return view('welcome', compact('lapangan'));
+    $lapangans = Lapangan::where('status', 'aktif')->latest()->take(6)->get();
+    return view('welcome', compact('lapangans'));
 })->name('home');
 
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
@@ -59,29 +60,33 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/daftar-mitra', [ProfileController::class, 'partnerForm'])->name('partner.form');
     Route::post('/daftar-mitra', [ProfileController::class, 'registerPartner'])->name('partner.register');
 
-    // Booking & Payment
-Route::middleware(['auth'])->prefix('payment')->name('payment.')->group(function () {
-    // Direct to booking form
-    Route::get('/lapangan/{lapanganId}/pay', [PaymentController::class, 'create'])->name('create');
-    
-    // Process booking & redirect to Midtrans
-    Route::post('/lapangan/{lapanganId}/pay', [PaymentController::class, 'store'])->name('store');
-    
-    // Midtrans Snap
-    Route::get('/booking/{booking}/process', [PaymentController::class, 'process'])->name('process');
-    
-    // Callback
-    Route::post('/notification', [PaymentController::class, 'notification'])->name('notification');
-    Route::get('/finish', [PaymentController::class, 'finish'])->name('finish');
-    Route::get('/error', [PaymentController::class, 'error'])->name('error');
-});
+    // ✅ PAYMENT ROUTES — DI LUAR GROUP LAIN (TANPA DUPLIKASI)
+    Route::prefix('payment')->name('payment.')->group(function () {
+        Route::get('/lapangan/{lapanganId}/pay', [PaymentController::class, 'create'])->name('create');
+        Route::post('/lapangan/{lapanganId}/pay', [PaymentController::class, 'store'])->name('store');
+        Route::get('/booking/{booking}/process', [PaymentController::class, 'process'])->name('process');
+        Route::post('/notification', [PaymentController::class, 'notification'])->name('notification');
+        Route::get('/finish', [PaymentController::class, 'finish'])->name('finish');
+        Route::get('/error', [PaymentController::class, 'error'])->name('error');
+    });
 
+    Route::middleware(['auth'])->group(function () {
+    // ✅ Booking routes
+    Route::prefix('booking')->name('booking.')->group(function () {
+        Route::get('/', [BookingController::class, 'index'])->name('index');
+        Route::get('/lapangan/{lapangan}/order-now', [BookingController::class, 'orderNow'])->name('order-now');
+        Route::post('/lapangan/{lapangan}/order-now', [BookingController::class, 'storeOrderNow'])->name('store-order-now');
+        Route::get('/{booking}', [BookingController::class, 'show'])->name('show');
+        Route::get('/{booking}/checkout', [BookingController::class, 'checkout'])->name('checkout');
+        Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
+    });
+    });
     /*
     |--------------------------------------------------------------------------
-    | PARTNER ONLY — HANYA LAPANGAN (SESUAI STRUKTUR ANDA)
+    | PARTNER ONLY
     |--------------------------------------------------------------------------
     */
-    Route::middleware('role:partner')->prefix('partner')->name('partner.')->group(function () {
+    Route::middleware('role:partner,super_admin')->prefix('partner')->name('partner.')->group(function () {
         // Dashboard partner
         Route::get('/dashboard', [PartnerController::class, 'dashboard'])->name('dashboard');
         Route::post('/leave', [ProfileController::class, 'leavePartner'])->name('leave');
@@ -105,23 +110,28 @@ Route::middleware(['auth'])->prefix('payment')->name('payment.')->group(function
             Route::delete('/{voucher}', [VoucherController::class, 'destroy'])->name('destroy');
         });
 
-        // ✅ MANAGE LAPANGAN — SESUAI FOLDER ANDA: lapangan/partner
-        Route::get('/lapangan', [LapanganController::class, 'index'])->name('lapangan.index');
-        Route::get('/lapangan/create', [LapanganController::class, 'create'])->name('lapangan.create');
-        Route::post('/lapangan', [LapanganController::class, 'store'])->name('lapangan.store');
-        Route::get('/lapangan/{lapangan}/edit', [LapanganController::class, 'edit'])->name('lapangan.edit');
-        Route::put('/lapangan/{lapangan}', [LapanganController::class, 'update'])->name('lapangan.update');
-        Route::delete('/lapangan/{lapangan}', [LapanganController::class, 'destroy'])->name('lapangan.destroy');
+        // Manage Lapangan
+        Route::prefix('lapangan')->name('lapangan.')->group(function () {
+            Route::get('/', [LapanganController::class, 'index'])->name('index');
+            Route::get('/create', [LapanganController::class, 'create'])->name('create');
+            Route::post('/', [LapanganController::class, 'store'])->name('store');
+            Route::get('/{lapangan}/edit', [LapanganController::class, 'edit'])->name('edit');
+            Route::put('/{lapangan}', [LapanganController::class, 'update'])->name('update');
+            Route::delete('/{lapangan}', [LapanganController::class, 'destroy'])->name('destroy');
+        });
     });
 
     /*
     |--------------------------------------------------------------------------
-    | ADMIN (SUPER ADMIN)
+    | SUPER ADMIN ONLY
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:super_admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/dashboard', fn() => view('template.dashboard'))->name('dashboard');
+        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
     });
 });
+
+// ✅ CALLBACK MIDTRANS (PUBLIC — KARENA DIPANGGIL OLEH MIDTRANS SERVER)
+Route::post('/payment/notification', [PaymentController::class, 'notification'])->name('payment.notification');
 
 require __DIR__.'/auth.php';
