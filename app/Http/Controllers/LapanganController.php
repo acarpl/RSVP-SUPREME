@@ -4,21 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Models\Lapangan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class LapanganController extends Controller
 {
-    // ===============
-    // CUSTOMER/GUEST
-    // ===============
+    // =============== CUSTOMER/GUEST ===============
 
     public function customerIndex()
     {
         $lapangans = Lapangan::where('status', 'aktif')
                              ->latest()
-                             ->paginate(9); // ✅ pagination
-
+                             ->paginate(9);
         return view('lapangan.index', compact('lapangans'));
     }
 
@@ -30,76 +27,30 @@ class LapanganController extends Controller
         return view('lapangan.show', compact('lapangan'));
     }
 
-    // ===============
-    // PARTNER ONLY
-    // ===============
+    // =============== PARTNER ONLY ===============
 
-public function index()
-{
-    $this->authorize('partner');
-    
-    // ✅ Hanya tampilkan lapangan milik sendiri
-    $lapangans = Lapangan::where('user_id', Auth::id())
-                         ->latest()
-                         ->paginate(10);
+    public function index()
+    {
+        $this->authorizePartner();
 
-    return view('lapangan.partner.index', compact('lapangans'));
-}
+        // ✅ DIPERBAIKI: partner_id (bukan user_id)
+        $lapangans = Lapangan::where('partner_id', Auth::id())
+                             ->latest()
+                             ->paginate(10);
+
+        return view('lapangan.partner.index', compact('lapangans'));
+    }
 
     public function create()
     {
-        $this->authorize('partner');
+        $this->authorizePartner();
         return view('lapangan.partner.create');
     }
 
     public function store(Request $request)
-{
-    $this->authorize('partner');
-    
-    $request->validate([
-        'nama' => 'required|string|max:255',
-        'lokasi' => 'required|string|max:255',
-        'kapasitas' => 'required|integer|min:1',
-        'harga' => 'required|integer|min:10000',
-        'status' => 'required|in:aktif,nonaktif',
-        'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-    ]);
-
-    $lapangan = new Lapangan();
-    $lapangan->user_id = Auth::id(); // ✅ Otomatis set mitra
-    $lapangan->nama = $request->nama;
-    $lapangan->lokasi = $request->lokasi;
-    $lapangan->kapasitas = $request->kapasitas;
-    $lapangan->harga = $request->harga;
-    $lapangan->status = $request->status;
-
-    if ($request->hasFile('gambar')) {
-        $lapangan->gambar = $request->file('gambar')->store('lapangans', 'public');
-    }
-
-    $lapangan->save();
-
-    return redirect()->route('partner.lapangan.index')
-                    ->with('success', 'Lapangan "' . $lapangan->nama . '" berhasil ditambahkan!');
-}
-
-    public function edit(Lapangan $lapangan)
     {
-        $this->authorize('partner');
-        
-        // ✅ Pastikan mitra hanya edit lapangannya sendiri
-        if ($lapangan->partner_id !== Auth::id()) {
-            abort(403, 'Anda tidak berhak mengedit lapangan ini.');
-        }
+        $this->authorizePartner();
 
-        return view('lapangan.partner.edit', compact('lapangan'));
-    }
-
-    public function update(Request $request, Lapangan $lapangan)
-    {
-        $this->authorize('partner');
-        
-        // ✅ Validasi lengkap
         $request->validate([
             'nama' => 'required|string|max:255',
             'lokasi' => 'required|string|max:255',
@@ -109,10 +60,45 @@ public function index()
             'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        // ✅ Pastikan akses pemilik
-        if ($lapangan->partner_id !== Auth::id()) {
-            abort(403, 'Anda tidak berhak mengupdate lapangan ini.');
+        $lapangan = new Lapangan();
+        $lapangan->partner_id = Auth::id(); // ✅
+        $lapangan->nama = $request->nama;
+        $lapangan->lokasi = $request->lokasi;
+        $lapangan->kapasitas = $request->kapasitas;
+        $lapangan->harga = $request->harga;
+        $lapangan->status = $request->status;
+
+        if ($request->hasFile('gambar')) {
+            // ✅ Folder: 'lapangans' (konsisten)
+            $lapangan->gambar = $request->file('gambar')->store('lapangans', 'public');
         }
+
+        $lapangan->save();
+
+        return redirect()->route('partner.lapangan.index')
+                        ->with('success', 'Lapangan "' . $lapangan->nama . '" berhasil ditambahkan!');
+    }
+
+    public function edit(Lapangan $lapangan)
+    {
+        $this->authorizePartner();
+        $this->authorizeOwnership($lapangan);
+        return view('lapangan.partner.edit', compact('lapangan'));
+    }
+
+    public function update(Request $request, Lapangan $lapangan)
+    {
+        $this->authorizePartner();
+        $this->authorizeOwnership($lapangan);
+
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'lokasi' => 'required|string|max:255',
+            'kapasitas' => 'required|integer|min:1',
+            'harga' => 'required|integer|min:10000',
+            'status' => 'required|in:aktif,nonaktif',
+            'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
 
         $lapangan->update([
             'nama' => $request->nama,
@@ -122,12 +108,12 @@ public function index()
             'status' => $request->status,
         ]);
 
-        // Handle gambar
         if ($request->hasFile('gambar')) {
             if ($lapangan->gambar && Storage::disk('public')->exists($lapangan->gambar)) {
                 Storage::disk('public')->delete($lapangan->gambar);
             }
-            $lapangan->gambar = $request->file('gambar')->store('lapangan', 'public');
+            // ✅ Folder: 'lapangans' (konsisten)
+            $lapangan->gambar = $request->file('gambar')->store('lapangans', 'public');
         }
 
         return redirect()->route('partner.lapangan.index')
@@ -136,12 +122,8 @@ public function index()
 
     public function destroy(Lapangan $lapangan)
     {
-        $this->authorize('partner');
-        
-        // ✅ Pastikan akses pemilik
-        if ($lapangan->partner_id !== Auth::id()) {
-            abort(403, 'Anda tidak berhak menghapus lapangan ini.');
-        }
+        $this->authorizePartner();
+        $this->authorizeOwnership($lapangan);
 
         if ($lapangan->gambar && Storage::disk('public')->exists($lapangan->gambar)) {
             Storage::disk('public')->delete($lapangan->gambar);
@@ -154,11 +136,19 @@ public function index()
                         ->with('success', 'Lapangan "' . $nama . '" berhasil dihapus!');
     }
 
-    // ✅ Helper authorize sesuai aturan Anda
-    private function authorize($role)
+    // ✅ Helper: authorize partner
+    private function authorizePartner()
     {
-        if (!Auth::check() || Auth::user()->role !== $role) {
-            abort(403, 'Akses ditolak.');
+        if (!Auth::check() || Auth::user()->role !== 'partner') {
+            abort(403, 'Akses ditolak. Hanya partner yang diizinkan.');
+        }
+    }
+
+    // ✅ Helper: pastikan milik sendiri
+    private function authorizeOwnership(Lapangan $lapangan)
+    {
+        if ($lapangan->partner_id !== Auth::id()) {
+            abort(403, 'Anda tidak berhak mengakses lapangan ini.');
         }
     }
 }

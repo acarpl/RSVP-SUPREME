@@ -11,13 +11,20 @@ class Lapangan extends Model
 
     // ✅ WAJIB ADA: daftar field yang boleh diisi mass assignment
     protected $fillable = [
+        'partner_id',   // ✅ BENAR — bukan user_id
         'nama',
-        'lokasi',      // ✅ harus ada
+        'lokasi',
         'kapasitas',
         'harga',
         'status',
         'gambar',
     ];
+
+    // Relasi
+    public function partner()
+{
+    return $this->belongsTo(User::class, 'partner_id'); // ✅
+}
 
     // Opsional: cast tipe data
     protected $casts = [
