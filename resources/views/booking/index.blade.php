@@ -26,7 +26,7 @@
                                     <h5 class="mb-1">{{ $booking->lapangan->nama }}</h5>
                                     <div class="d-flex flex-wrap gap-3">
                                         <span class="badge bg-light text-dark">
-                                            {{ $booking->start_time->format('d M Y H:i') }}
+                                            {{ $booking->jam_mulai?->format('d M H:i') ?? '-' }}
                                         </span>
                                         <span class="badge bg-light text-dark">
                                             {{ $booking->duration_hours }} jam

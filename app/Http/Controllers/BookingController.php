@@ -29,56 +29,50 @@ class BookingController extends Controller
 
     public function storeOrderNow(Request $request, Lapangan $lapangan)
     {
-        // ✅ PERBAIKAN UTAMA: ganti min=1 → min:1, max=4 → max:4
+        // ✅ Perbaikan: min:1, max:12 (bukan min=1/max=4)
         $request->validate([
             'tanggal' => 'required|date|after_or_equal:today',
             'jam_mulai' => 'required|date_format:H:i',
-            'durasi' => 'required|integer|min:1|max:12', // ✅ max:12 (bukan max=4)
+            'durasi' => 'required|integer|min:1|max:12',
         ]);
 
+        // Parsing waktu
         $jamMulai = Carbon::createFromFormat('H:i', $request->jam_mulai);
-        $durasi = $request->durasi;
-        $jamSelesai = $jamMulai->copy()->addHours($durasi);
+        $jamSelesai = $jamMulai->copy()->addHours($request->durasi);
 
-        // ✅ PERBAIKAN: Validasi bentrok jadwal lebih akurat
+        // Validasi ketersediaan
         $isAvailable = !Booking::where('lapangan_id', $lapangan->id)
             ->where('tanggal', $request->tanggal)
             ->where('status', '!=', 'dibatalkan')
-            ->where(function ($query) use ($jamMulai, $jamSelesai) {
-                $query->where(function ($q) use ($jamMulai, $jamSelesai) {
-                    // Kasus 1: Jadwal baru di dalam jadwal lama
-                    $q->where('jam_mulai', '<=', $jamMulai->format('H:i'))
-                      ->where('jam_selesai', '>=', $jamSelesai->format('H:i'));
-                })->orWhere(function ($q) use ($jamMulai, $jamSelesai) {
-                    // Kasus 2: Jadwal lama di dalam jadwal baru
-                    $q->where('jam_mulai', '>=', $jamMulai->format('H:i'))
-                      ->where('jam_selesai', '<=', $jamSelesai->format('H:i'));
-                })->orWhere(function ($q) use ($jamMulai, $jamSelesai) {
-                    // Kasus 3: Overlap awal
-                    $q->where('jam_mulai', '<', $jamSelesai->format('H:i'))
-                      ->where('jam_selesai', '>', $jamMulai->format('H:i'));
-                });
+            ->where(function ($q) use ($jamMulai, $jamSelesai) {
+                $q->whereBetween('jam_mulai', [$jamMulai->format('H:i'), $jamSelesai->format('H:i')])
+                  ->orWhereBetween('jam_selesai', [$jamMulai->format('H:i'), $jamSelesai->format('H:i')])
+                  ->orWhere(function ($q2) use ($jamMulai, $jamSelesai) {
+                      $q2->where('jam_mulai', '<=', $jamMulai->format('H:i'))
+                         ->where('jam_selesai', '>=', $jamSelesai->format('H:i'));
+                  });
             })->exists();
 
         if (!$isAvailable) {
             return back()->withErrors([
-                'jam_mulai' => 'Jadwal bentrok dengan booking lain. Pilih waktu lain.'
+                'jam_mulai' => 'Jadwal bentrok. Silakan pilih waktu lain.'
             ])->withInput();
         }
 
+        // Buat booking
         $booking = Booking::create([
             'user_id' => Auth::id(),
             'lapangan_id' => $lapangan->id,
             'tanggal' => $request->tanggal,
             'jam_mulai' => $jamMulai->format('H:i'),
             'jam_selesai' => $jamSelesai->format('H:i'),
-            'durasi' => $durasi,
-            'total_harga' => $lapangan->harga * $durasi,
-            'status' => 'menunggu',
+            'durasi' => $request->durasi,
+            'total_harga' => $lapangan->harga * $request->durasi,
+            'status' => 'menunggu_pembayaran', // ✅ Sesuai alur Midtrans
         ]);
 
-        return redirect()->route('booking.checkout', $booking)
-                        ->with('success', 'Booking berhasil! Silakan lanjut ke pembayaran.');
+        // Redirect ke Midtrans
+        return redirect()->route('payment.process', $booking);
     }
 
     public function checkout(Booking $booking)
@@ -95,7 +89,9 @@ class BookingController extends Controller
 
     public function cancel(Booking $booking)
     {
-        if ($booking->user_id !== Auth::id() || $booking->status !== 'menunggu') abort(403);
+        if ($booking->user_id !== Auth::id() || !in_array($booking->status, ['menunggu', 'menunggu_pembayaran'])) {
+            abort(403);
+        }
         $booking->update(['status' => 'dibatalkan']);
         return redirect()->route('booking.index')->with('success', 'Booking dibatalkan.');
     }
@@ -104,7 +100,7 @@ class BookingController extends Controller
     {
         $cart = session('cart', []);
         if (empty($cart)) {
-            return redirect()->route('products.index')->withErrors('Keranjang kosong.');
+            return redirect()->route('products.index')->with('error', 'Keranjang kosong.');
         }
         $lapangans = Lapangan::where('status', 'aktif')->get();
         return view('booking.from-cart', compact('lapangans', 'cart'));

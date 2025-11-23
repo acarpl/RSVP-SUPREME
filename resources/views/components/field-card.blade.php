@@ -6,7 +6,7 @@
          alt="{{ $title ?? 'Lapangan' }}">
 
     <div class="p-3">
-        <h5 class="fw-bold mb-2">{{ $title ?? 'Nama Lapangan' }}</h5>
+        <h5 class="fw-bold text-dark mb-2">{{ $title ?? 'Nama Lapangan' }}</h5>
 
         <div class="d-flex align-items-center mb-2">
             <i class="fas fa-map-marker-alt text-muted me-1"></i>

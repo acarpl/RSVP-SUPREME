@@ -139,7 +139,7 @@
                                     <div>
                                         <h6 class="mb-1">{{ $booking->lapangan->nama ?? 'Lapangan' }}</h6>
                                         <small class="text-muted">
-                                            {{ $booking->start_time->format('d M H:i') }}
+                                            {{ $booking->jam_mulai?->format('d M H:i') ?? '-' }}
                                         </small>
                                     </div>
                                     <span class="badge bg-{{ $booking->status == 'confirmed' ? 'success' : 'warning' }} text-dark">

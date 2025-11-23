@@ -89,7 +89,7 @@
 
         /* Field Card */
         .field-card {
-            background-color: #FF7A3F;
+            background-color: white;
             border-radius: 12px;
             overflow: hidden;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);

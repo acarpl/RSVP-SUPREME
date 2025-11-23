@@ -8,12 +8,13 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\PartnerController;
-use App\Http\Controllers\PaymentController; // ✅ Tambahkan ini
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\CheckoutController;
 use App\Models\Lapangan;
 
 /*
 |--------------------------------------------------------------------------
-| PUBLIC ROUTES (CUSTOMER & GUEST)
+| PUBLIC ROUTES (GUEST & CUSTOMER)
 |--------------------------------------------------------------------------
 */
 
@@ -22,23 +23,27 @@ Route::get('/', function () {
     return view('welcome', compact('lapangans'));
 })->name('home');
 
+// Produk & Voucher
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
-
 Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers.index');
 
-// ✅ LAPANGAN UNTUK CUSTOMER/GUEST
+// Lapangan (publik)
 Route::get('/lapangan', [LapanganController::class, 'customerIndex'])->name('lapangan.index');
 Route::get('/lapangan/{lapangan}', [LapanganController::class, 'customerShow'])->name('lapangan.show');
 
+// 🔑 WEBHOOK MIDTRANS — HARUS DI LUAR SEMUA MIDDLEWARE
+Route::post('/midtrans/notification', [PaymentController::class, 'notification'])
+    ->name('midtrans.notification');
+
 /*
 |--------------------------------------------------------------------------
-| CART ROUTES (SEMUA USER)
+| CART ROUTES (SEMUA USER — DIPERLUKAN AUTH)
 |--------------------------------------------------------------------------
 */
-Route::prefix('cart')->name('cart.')->group(function () {
+Route::middleware(['auth'])->prefix('cart')->name('cart.')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('index');
-    Route::post('/add', [CartController::class, 'add'])->name('add');
+    Route::post('/add/{product}', [CartController::class, 'add'])->name('add'); 
     Route::post('/remove', [CartController::class, 'remove'])->name('remove');
     Route::post('/update', [CartController::class, 'update'])->name('update');
     Route::get('/count', [CartController::class, 'count'])->name('count');
@@ -46,44 +51,21 @@ Route::prefix('cart')->name('cart.')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| AUTH ONLY (CUSTOMER & PARTNER)
+| AUTH REQUIRED (CUSTOMER & PARTNER)
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth'])->group(function () {
 
-    // PROFILE
+    // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // DAFTAR MITRA
+    // Daftar Mitra
     Route::get('/daftar-mitra', [ProfileController::class, 'partnerForm'])->name('partner.form');
     Route::post('/daftar-mitra', [ProfileController::class, 'registerPartner'])->name('partner.register');
 
-    // ✅ PAYMENT ROUTES — DI LUAR GROUP LAIN (TANPA DUPLIKASI)
-    Route::middleware(['web', 'auth'])->group(function () {
-    // Booking form
-    Route::get('/booking/lapangan/{lapanganId}/order-now', [PaymentController::class, 'create'])
-         ->name('booking.order-now');
-
-    // Proses booking → generate SNAP redirect URL
-    Route::post('/payment/lapangan/{lapanganId}/pay', [PaymentController::class, 'store'])
-         ->name('payment.store');
-
-    // Redirect ke SNAP (Midtrans)
-    Route::get('/payment/redirect/{booking}', [PaymentController::class, 'redirect'])
-         ->name('payment.redirect');
-
-    // Setelah bayar → cek status & update
-    Route::get('/payment/finish/{booking}', [PaymentController::class, 'finish'])
-         ->name('payment.finish');
-
-    Route::get('/payment/error', [PaymentController::class, 'error'])
-         ->name('payment.error');
-});
-
-    Route::middleware(['auth'])->group(function () {
-    // ✅ Booking routes
+    // ✅ BOOKING (CUSTOMER)
     Route::prefix('booking')->name('booking.')->group(function () {
         Route::get('/', [BookingController::class, 'index'])->name('index');
         Route::get('/lapangan/{lapangan}/order-now', [BookingController::class, 'orderNow'])->name('order-now');
@@ -92,58 +74,95 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{booking}/checkout', [BookingController::class, 'checkout'])->name('checkout');
         Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
     });
-    });
-    /*
-    |--------------------------------------------------------------------------
-    | PARTNER ONLY
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware('role:partner,super_admin')->prefix('partner')->name('partner.')->group(function () {
-        // Dashboard partner
-        Route::get('/dashboard', [PartnerController::class, 'dashboard'])->name('dashboard');
-        Route::post('/leave', [ProfileController::class, 'leavePartner'])->name('leave');
 
-        // Manage Product
-        Route::prefix('products')->name('products.')->group(function () {
-            Route::get('/', [ProductController::class, 'manage'])->name('manage');
-            Route::get('/create', [ProductController::class, 'create'])->name('create');
-            Route::post('/', [ProductController::class, 'store'])->name('store');
-            Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
-            Route::put('/{product}', [ProductController::class, 'update'])->name('update');
-            Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
-        });
+    // ✅ PEMBAYARAN (SNAP + FINISH)
+    Route::prefix('payment')->name('payment.')->group(function () {
+        // Langkah 1: Form booking → simpan booking
+        Route::get('/lapangan/{lapanganId}/order', [PaymentController::class, 'create'])
+            ->name('create');
 
-        // Manage Voucher
-        Route::prefix('vouchers')->name('vouchers.')->group(function () {
-            Route::get('/create', [VoucherController::class, 'create'])->name('create');
-            Route::post('/', [VoucherController::class, 'store'])->name('store');
-            Route::get('/{voucher}/edit', [VoucherController::class, 'edit'])->name('edit');
-            Route::put('/{voucher}', [VoucherController::class, 'update'])->name('update');
-            Route::delete('/{voucher}', [VoucherController::class, 'destroy'])->name('destroy');
-        });
+        Route::post('/lapangan/{lapanganId}/order', [PaymentController::class, 'store'])
+            ->name('store');
 
-        // Manage Lapangan
-        Route::prefix('lapangan')->name('lapangan.')->group(function () {
-            Route::get('/', [LapanganController::class, 'index'])->name('index');
-            Route::get('/create', [LapanganController::class, 'create'])->name('create');
-            Route::post('/', [LapanganController::class, 'store'])->name('store');
-            Route::get('/{lapangan}/edit', [LapanganController::class, 'edit'])->name('edit');
-            Route::put('/{lapangan}', [LapanganController::class, 'update'])->name('update');
-            Route::delete('/{lapangan}', [LapanganController::class, 'destroy'])->name('destroy');
-        });
-    });
+        // Langkah 2: Redirect ke Midtrans
+        Route::get('/redirect/{booking}', [PaymentController::class, 'redirect'])
+            ->name('redirect');
 
-    /*
-    |--------------------------------------------------------------------------
-    | SUPER ADMIN ONLY
-    |--------------------------------------------------------------------------
-    */
-    Route::middleware('role:super_admin')->prefix('admin')->name('admin.')->group(function () {
-        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
+        // Langkah 3: Setelah bayar → update status
+        Route::get('/finish/{booking}', [PaymentController::class, 'finish'])
+            ->name('finish');
+
+        Route::get('/error', [PaymentController::class, 'error'])
+            ->name('error');
     });
 });
 
-// ✅ CALLBACK MIDTRANS (PUBLIC — KARENA DIPANGGIL OLEH MIDTRANS SERVER)
-Route::post('/payment/notification', [PaymentController::class, 'notification'])->name('payment.notification');
+/*
+|--------------------------------------------------------------------------
+| PARTNER ONLY
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:partner,super_admin'])
+    ->prefix('partner')
+    ->name('partner.')
+    ->group(function () {
 
-require __DIR__.'/auth.php';
+    Route::get('/dashboard', [PartnerController::class, 'dashboard'])->name('dashboard');
+    Route::post('/leave', [ProfileController::class, 'leavePartner'])->name('leave');
+
+    // Produk
+    Route::prefix('products')->name('products.')->group(function () {
+        Route::get('/', [ProductController::class, 'manage'])->name('manage');
+        Route::get('/create', [ProductController::class, 'create'])->name('create');
+        Route::post('/', [ProductController::class, 'store'])->name('store');
+        Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
+        Route::put('/{product}', [ProductController::class, 'update'])->name('update');
+        Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+    });
+
+    // Voucher
+    Route::prefix('vouchers')->name('vouchers.')->group(function () {
+        Route::get('/create', [VoucherController::class, 'create'])->name('create');
+        Route::post('/', [VoucherController::class, 'store'])->name('store');
+        Route::get('/{voucher}/edit', [VoucherController::class, 'edit'])->name('edit');
+        Route::put('/{voucher}', [VoucherController::class, 'update'])->name('update');
+        Route::delete('/{voucher}', [VoucherController::class, 'destroy'])->name('destroy');
+    });
+
+    // Lapangan
+    Route::prefix('lapangan')->name('lapangan.')->group(function () {
+        Route::get('/', [LapanganController::class, 'index'])->name('index');
+        Route::get('/create', [LapanganController::class, 'create'])->name('create');
+        Route::post('/', [LapanganController::class, 'store'])->name('store');
+        Route::get('/{lapangan}/edit', [LapanganController::class, 'edit'])->name('edit');
+        Route::put('/{lapangan}', [LapanganController::class, 'update'])->name('update');
+        Route::delete('/{lapangan}', [LapanganController::class, 'destroy'])->name('destroy');
+    });
+});
+
+/*
+|--------------------------------------------------------------------------
+| SUPER ADMIN ONLY
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role:super_admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
+    });
+
+// Checkout produk
+Route::middleware(['auth'])->prefix('checkout')->name('checkout.')->group(function () {
+    Route::get('/', [CheckoutController::class, 'index'])->name('index');
+    Route::post('/', [CheckoutController::class, 'store'])->name('store');
+    Route::get('/payment/{order}', [CheckoutController::class, 'payment'])->name('payment');
+    Route::get('/finish/{order}', [CheckoutController::class, 'finish'])->name('finish');
+    Route::get('/error', [CheckoutController::class, 'error'])->name('error');
+});
+
+// Order detail
+Route::middleware(['auth'])->prefix('order')->name('order.')->group(function () {
+    Route::get('/{order}', [CheckoutController::class, 'show'])->name('show');
+});
+require __DIR__ . '/auth.php';

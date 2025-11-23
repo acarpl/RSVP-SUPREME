@@ -163,40 +163,32 @@ document.addEventListener('alpine:init', () => {
         addToCart(productId, name, price) {
             this.adding[productId] = true;
 
-            // ✅ Perbaikan: Gunakan FormData (bukan JSON)
             const formData = new FormData();
-            formData.append('product_id', productId);
-            formData.append('name', name);
-            formData.append('price', price);
             formData.append('quantity', 1);
-            formData.append('_token', '{{ csrf_token() }}'); // CSRF token
 
-            // ✅ Kirim ke /cart/add (path langsung)
-            fetch('/cart/add', {
+            fetch(`/cart/add/${productId}`, { // ✅ Tambahkan /${productId}
                 method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}', // ✅ Lebih aman
+                    'Accept': 'application/json' // ✅ Pastikan respons JSON
+                },
                 body: formData
-                // ❗ JANGAN SET headers: Content-Type — biarkan browser set otomatis
             })
             .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
-                    });
-                }
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return response.json();
             })
             .then(data => {
                 if (data.success) {
-                    // Trigger update cart di navbar
                     document.dispatchEvent(new CustomEvent('cart-updated'));
-                    alert('✅ ' + data.message);
+                    alert(data.message);
                 } else {
-                    throw new Error(data.error || 'Gagal menambahkan');
+                    throw new Error(data.message || 'Gagal');
                 }
             })
             .catch(err => {
                 console.error('Cart error:', err);
-                alert('❌ Gagal: ' + err.message);
+                alert('❌ Gagal menambahkan ke keranjang.');
             })
             .finally(() => {
                 this.adding[productId] = false;
