@@ -8,7 +8,7 @@
     <div class="card mt-3">
         <div class="card-body">
 
-            <form action="{{ route('vouchers.update', $voucher->id) }}" method="POST">
+            <form action="{{ route('partner.vouchers.update', $voucher->id) }}" method="POST">
                 @csrf
                 @method('PUT')
 

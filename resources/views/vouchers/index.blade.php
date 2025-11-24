@@ -7,7 +7,7 @@
 
     {{-- Admin & Partner boleh tambah --}}
     @if(auth()->check() && in_array(auth()->user()->role, ['admin','partner']))
-        <a href="{{ route('vouchers.create') }}" class="btn btn-primary mb-3">Tambah Voucher</a>
+        <a href="{{ route('partner.vouchers.create') }}" class="btn btn-primary mb-3">Tambah Voucher</a>
     @endif
 
     <div class="card">
@@ -42,9 +42,9 @@
                             {{-- Admin + Partner --}}
                             @if(auth()->check() && in_array(auth()->user()->role, ['admin','partner']))
                                 <td>
-                                    <a href="{{ route('vouchers.edit', $v) }}" class="btn btn-warning btn-sm">Edit</a>
+                                    <a href="{{ route('partner.vouchers.edit', $v) }}" class="btn btn-warning btn-sm">Edit</a>
 
-                                    <form action="{{ route('vouchers.destroy', $v) }}"
+                                    <form action="{{ route('partner.vouchers.destroy', $v) }}"
                                           method="POST"
                                           class="d-inline">
                                         @csrf

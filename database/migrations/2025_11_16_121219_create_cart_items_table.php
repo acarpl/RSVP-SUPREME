@@ -14,12 +14,11 @@ return new class extends Migration
     Schema::create('cart_items', function (Blueprint $table) {
         $table->id();
         $table->unsignedBigInteger('cart_id');
-        $table->unsignedBigInteger('item_id');      // id dari products atau lapangans
-        $table->string('item_type');                // 'product' atau 'lapangan'
+        $table->unsignedBigInteger('item_id'); 
+        $table->string('item_type');           
         $table->integer('qty')->default(1);
         $table->decimal('price', 12, 2);
         $table->timestamps();
-
         $table->foreign('cart_id')->references('id')->on('carts')->onDelete('cascade');
     });
 }

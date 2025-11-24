@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Voucher;
+use App\Models\Partner;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,7 +25,8 @@ class VoucherController extends Controller
      */
     public function create()
     {
-        return view('vouchers.create');
+         $partners = Partner::all(); // or however you fetch partners
+         return view('vouchers.create', compact('partners'));
     }
 
     /**

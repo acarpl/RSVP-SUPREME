@@ -17,7 +17,6 @@ return new class extends Migration
         $table->unsignedBigInteger('user_id');
         $table->unsignedBigInteger('booking_id')->nullable();
         $table->timestamps();
-
         $table->unique(['voucher_id','user_id']);
         $table->foreign('voucher_id')->references('id')->on('vouchers')->onDelete('cascade');
         $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

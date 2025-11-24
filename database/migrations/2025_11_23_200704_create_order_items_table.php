@@ -16,7 +16,7 @@ return new class extends Migration
     $table->foreignId('order_id')->constrained()->onDelete('cascade');
     $table->foreignId('product_id')->constrained();
     $table->integer('quantity');
-    $table->bigInteger('price'); // harga saat beli (bukan harga sekarang)
+    $table->bigInteger('price');
 });
     }
 

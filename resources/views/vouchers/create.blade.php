@@ -1,74 +1,79 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="container py-4">
     <h2 class="mb-4">Buat Voucher Baru</h2>
 
-    <form action="{{ route('vouchers.store') }}" method="POST">
+    <form action="{{ route('partner.vouchers.store') }}" method="POST">
         @csrf
 
-        {{-- PARTNER ID --}}
-        <div class="mb-3">
-            <label class="form-label">Partner</label>
-            <select name="partner_id" class="form-control" required>
-                @foreach($partners as $partner)
-                    <option value="{{ $partner->id }}">{{ $partner->name }}</option>
-                @endforeach
-            </select>
+        <div class="row g-3">
+            {{-- Partner --}}
+            <div class="col-md-6">
+                <label class="form-label">Partner</label>
+                <select name="partner_id" class="form-select" required>
+                    @foreach($partners as $partner)
+                        <option value="{{ $partner->id }}">{{ $partner->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Kode Voucher --}}
+            <div class="col-md-6">
+                <label class="form-label">Kode Voucher</label>
+                <input type="text" name="code" class="form-control" required>
+            </div>
+
+            {{-- Deskripsi --}}
+            <div class="col-12">
+                <label class="form-label">Deskripsi</label>
+                <textarea name="description" class="form-control" rows="2" required></textarea>
+            </div>
+
+            {{-- Tipe & Value (inline) --}}
+            <div class="col-md-6">
+                <label class="form-label">Tipe & Nilai</label>
+                <div class="input-group">
+                    <select name="type" class="form-select" style="max-width:120px" required>
+                        <option value="percent">%</option>
+                        <option value="fixed">Rp</option>
+                    </select>
+                    <input type="number" name="value" class="form-control" placeholder="Nilai" required>
+                </div>
+            </div>
+
+            {{-- Minimal Belanja --}}
+            <div class="col-md-6">
+                <label class="form-label">Min. Belanja</label>
+                <div class="input-group">
+                    <span class="input-group-text">Rp</span>
+                    <input type="number" name="min_amount" class="form-control" required>
+                </div>
+            </div>
+
+            {{-- Maks Diskon (opsional, kecil) --}}
+            <div class="col-md-6">
+                <label class="form-label">Maks Diskon <small class="text-muted">(jika %)</small></label>
+                <div class="input-group">
+                    <span class="input-group-text">Rp</span>
+                    <input type="number" name="max_discount" class="form-control" placeholder="Opsional">
+                </div>
+            </div>
+
+            {{-- Quota & Expired --}}
+            <div class="col-md-3">
+                <label class="form-label">Quota</label>
+                <input type="number" name="quota" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Berlaku Sampai</label>
+                <input type="date" name="expires_at" class="form-control" required>
+            </div>
         </div>
 
-        {{-- CODE --}}
-        <div class="mb-3">
-            <label class="form-label">Kode Voucher</label>
-            <input type="text" name="code" class="form-control" required>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-brand px-4">💾 Simpan Voucher</button>
         </div>
-
-        {{-- DESCRIPTION --}}
-        <div class="mb-3">
-            <label class="form-label">Deskripsi</label>
-            <textarea name="description" class="form-control" required></textarea>
-        </div>
-
-        {{-- TYPE --}}
-        <div class="mb-3">
-            <label class="form-label">Tipe Voucher</label>
-            <select name="type" class="form-control" required>
-                <option value="percent">Percent</option>
-                <option value="fixed">Fixed</option>
-            </select>
-        </div>
-
-        {{-- VALUE --}}
-        <div class="mb-3">
-            <label class="form-label">Value</label>
-            <input type="number" name="value" class="form-control" required>
-        </div>
-
-        {{-- MIN AMOUNT --}}
-        <div class="mb-3">
-            <label class="form-label">Minimal Belanja</label>
-            <input type="number" name="min_amount" class="form-control" required>
-        </div>
-
-        {{-- MAX DISCOUNT (khusus percent) --}}
-        <div class="mb-3">
-            <label class="form-label">Maksimal Diskon (untuk percent)</label>
-            <input type="number" name="max_discount" class="form-control">
-        </div>
-
-        {{-- QUOTA --}}
-        <div class="mb-3">
-            <label class="form-label">Quota</label>
-            <input type="number" name="quota" class="form-control" required>
-        </div>
-
-        {{-- EXPIRES AT --}}
-        <div class="mb-3">
-            <label class="form-label">Expired</label>
-            <input type="date" name="expires_at" class="form-control" required>
-        </div>
-
-        <button type="submit" class="btn btn-brand px-4 mt-3">Simpan</button>
     </form>
 </div>
 @endsection

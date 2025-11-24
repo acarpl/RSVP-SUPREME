@@ -18,7 +18,7 @@ return new class extends Migration
         $table->date('tanggal');
         $table->time('jam_mulai');
         $table->time('jam_selesai');
-        $table->integer('durasi'); // dalam jam
+        $table->integer('durasi');
         $table->decimal('total_harga', 12, 2);
         $table->enum('status', ['menunggu', 'dikonfirmasi', 'selesai', 'dibatalkan'])->default('menunggu');
         $table->timestamps();
