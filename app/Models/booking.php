@@ -13,6 +13,7 @@ class Booking extends Model
         'jam_mulai',
         'jam_selesai',
         'durasi',
+        'alamat_pengiriman', // ✅ Untuk beli produk
         'total_harga',
         'order_id',
         'snap_token',
@@ -20,10 +21,25 @@ class Booking extends Model
     ];
 
     protected $casts = [
-        'tanggal' => 'date',       // ✅ Casting wajib
-        'jam_mulai' => 'datetime', // ✅ Hindari error "Call to format() on null"
-        'jam_selesai' => 'datetime', // ✅
+        'tanggal' => 'date',
+        'jam_mulai' => 'time',
+        'jam_selesai' => 'time',
     ];
+
+    // ✅ Jenis pesanan
+    public function getJenisPesananAttribute()
+    {
+        if ($this->alamat_pengiriman) {
+            return 'beli_produk';
+        }
+        return 'sewa_alat';
+    }
+
+    // ✅ Nama jenis pesanan
+    public function getJenisPesananTextAttribute()
+    {
+        return $this->jenis_pesanan === 'beli_produk' ? 'Beli Produk' : 'Sewa Alat';
+    }
 
     public function user()
     {
@@ -34,8 +50,9 @@ class Booking extends Model
     {
         return $this->belongsTo(Lapangan::class);
     }
+
     public function items()
-{
-    return $this->hasMany(BookingItem::class);
-}
+    {
+        return $this->hasMany(BookingItem::class);
+    }
 }

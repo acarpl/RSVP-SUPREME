@@ -1,5 +1,4 @@
 <?php
-
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookingController;
@@ -38,7 +37,7 @@ Route::post('/midtrans/notification', [PaymentController::class, 'notification']
 
 /*
 |--------------------------------------------------------------------------
-| CART ROUTES (SEMUA USER)
+| CART ROUTES (SEMUA USER — DIPERLUKAN AUTH)
 |--------------------------------------------------------------------------
 */
 Route::prefix('cart')->name('cart.')->group(function () {
@@ -75,17 +74,30 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{booking}/cancel', [BookingController::class, 'cancel'])->name('cancel');
     });
 
-    // ✅ CHECKOUT DARI KERANJANG (TERPISAH SESUAI STRUKTUR ANDA)
+    // ✅ PEMBAYARAN (SNAP + FINISH)
+    Route::prefix('payment')->name('payment.')->group(function () {
+        // Langkah 1: Form booking → simpan booking
+        Route::get('/lapangan/{lapanganId}/order', [PaymentController::class, 'create'])
+            ->name('create');
+
+        Route::post('/lapangan/{lapanganId}/order', [PaymentController::class, 'store'])
+            ->name('store');
+
+        // Langkah 2: Redirect ke Midtrans
+        Route::get('/redirect/{booking}', [PaymentController::class, 'redirect'])
+            ->name('redirect');
+
+        // Langkah 3: Setelah bayar → update status
+        Route::get('/finish/{booking}', [PaymentController::class, 'finish'])
+            ->name('finish');
+
+        Route::get('/error', [PaymentController::class, 'error'])
+            ->name('error');
+        
+    });
     Route::prefix('checkout')->name('checkout.')->group(function () {
         Route::get('/', [CheckoutController::class, 'index'])->name('index');
         Route::post('/', [CheckoutController::class, 'store'])->name('store');
-    });
-
-    // ✅ PEMBAYARAN (MIDTRANS)
-    Route::prefix('payment')->name('payment.')->group(function () {
-        Route::get('/booking/{booking}/process', [PaymentController::class, 'process'])->name('process');
-        Route::get('/finish', [PaymentController::class, 'finish'])->name('finish');
-        Route::get('/error', [PaymentController::class, 'error'])->name('error');
     });
 });
 
@@ -130,6 +142,7 @@ Route::middleware(['auth', 'role:partner,super_admin'])
         Route::put('/{lapangan}', [LapanganController::class, 'update'])->name('update');
         Route::delete('/{lapangan}', [LapanganController::class, 'destroy'])->name('destroy');
     });
+    
 });
 
 /*
@@ -144,4 +157,17 @@ Route::middleware(['auth', 'role:super_admin'])
         Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
     });
 
+// Checkout produk
+Route::middleware(['auth'])->prefix('checkout')->name('checkout.')->group(function () {
+    Route::get('/', [CheckoutController::class, 'index'])->name('index');
+    Route::post('/', [CheckoutController::class, 'store'])->name('store');
+    Route::get('/payment/{order}', [CheckoutController::class, 'payment'])->name('payment');
+    Route::get('/finish/{order}', [CheckoutController::class, 'finish'])->name('finish');
+    Route::get('/error', [CheckoutController::class, 'error'])->name('error');
+});
+
+// Order detail
+Route::middleware(['auth'])->prefix('order')->name('order.')->group(function () {
+    Route::get('/{order}', [CheckoutController::class, 'show'])->name('show');
+});
 require __DIR__ . '/auth.php';
