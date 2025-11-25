@@ -147,67 +147,73 @@ class PaymentController extends Controller
         }
     }
 
-    // =============== MIDTRANS SNAP: ORDER (PRODUK / SEWA ALAT) ===============
-
     public function processOrder(Order $order)
-    {
-        if ($order->user_id !== Auth::id() || $order->status !== 'menunggu_pembayaran') {
-            abort(403, 'Order tidak valid.');
-        }
-
-        $orderId = 'ORDER-' . now()->format('YmdHis') . '-' . $order->id;
-
-        $items = $order->items->map(function ($item) {
-            return [
-                'id' => 'prod-' . $item->product_id,
-                'price' => (int) $item->price,
-                'quantity' => (int) $item->quantity,
-                'name' => $item->name,
-            ];
-        })->values()->all();
-
-        if (empty($items)) {
-            return back()->withErrors(['Pesanan tidak memiliki item.']);
-        }
-
-        $payload = [
-            'transaction_details' => [
-                'order_id' => $orderId,
-                'gross_amount' => (int) $order->total_harga,
-            ],
-            'customer_details' => [
-                'first_name' => Auth::user()->name,
-                'email' => Auth::user()->email,
-                'phone' => Auth::user()->phone ?: '081234567890',
-                'billing_address' => $order->jenis_pesanan === 'beli_produk'
-                    ? [
-                        'first_name' => Auth::user()->name,
-                        'address' => $order->alamat ?? '-',
-                        'city' => 'Kota Bekasi',
-                        'postal_code' => '17143',
-                        'country_code' => 'ID',
-                    ] : null,
-            ],
-            'item_details' => $items,
-            'credit_card' => ['secure' => true],
-            'finish_redirect_url' => route('order.finish', $order),
-            'unfinish_redirect_url' => route('order.error'),
-            'error_redirect_url' => route('order.error'),
-        ];
-
-        try {
-            $snapResponse = Snap::createTransaction($payload);
-            $order->update(['order_id_midtrans' => $orderId]);
-            return redirect()->away($snapResponse->redirect_url);
-        } catch (\Exception $e) {
-            Log::error('Midtrans Snap Error (Order)', [
-                'order_id' => $order->id,
-                'message' => $e->getMessage(),
-            ]);
-            return back()->withErrors(['Gagal membuka pembayaran. Silakan coba lagi.']);
-        }
+{
+    if ($order->user_id !== Auth::id() || $order->status !== 'menunggu_pembayaran') {
+        abort(403, 'Order tidak valid.');
     }
 
+    $orderId = 'ORDER-' . now()->format('YmdHis') . '-' . $order->id;
+
+    // ✅ Hitung ulang total dari item (pastikan sesuai gross_amount)
+    $calculatedTotal = 0;
+    $items = [];
+
+    foreach ($order->items as $item) {
+        $price = (int) $item->price;
+        $qty = (int) $item->quantity;
+        $subtotal = $price * $qty;
+        $calculatedTotal += $subtotal;
+
+        $items[] = [
+            'id' => 'prod-' . $item->product_id,
+            'price' => $price,
+            'quantity' => $qty,
+            'name' => trim($item->name ?: 'Produk') ?: 'Produk', // ✅ pastikan tidak kosong
+        ];
+    }
+
+    // ✅ Pastikan gross_amount = jumlah item
+    $grossAmount = $calculatedTotal > 0 ? $calculatedTotal : (int) $order->total;
+
+    $payload = [
+        'transaction_details' => [
+            'order_id' => $orderId,
+            'gross_amount' => $grossAmount, // ✅ pastikan ini = jumlah item
+        ],
+        'customer_details' => [
+            'first_name' => trim(Auth::user()->name ?: 'Pelanggan'),
+            'email' => Auth::user()->email,
+            'phone' => Auth::user()->phone ?: '081234567890',
+            'billing_address' => $order->jenis_pesanan === 'beli_produk'
+                ? [
+                    'first_name' => trim(Auth::user()->name ?: 'Pelanggan'),
+                    'address' => trim($order->alamat_pengiriman ?: '-'),
+                    'city' => 'Bekasi',
+                    'postal_code' => '17143',
+                    'country_code' => 'IDN', // ✅ 3 huruf: IDN (bukan ID)
+                ] : null,
+        ],
+        'item_details' => $items,
+        'credit_card' => ['secure' => true],
+        'finish_redirect_url' => route('order.finish', $order),
+        'unfinish_redirect_url' => route('order.error'),
+        'error_redirect_url' => route('order.error'),
+    ];
+
+    try {
+        $snapResponse = Snap::createTransaction($payload);
+        $order->update(['order_id_midtrans' => $orderId]);
+        return redirect()->away($snapResponse->redirect_url);
+    } catch (\Exception $e) {
+        Log::error('Midtrans Order Error', [
+            'order_id' => $order->id,
+            'payload' => $payload, // ✅ log payload untuk debugging
+            'message' => $e->getMessage(),
+        ]);
+        return back()->withErrors(['Gagal membuka pembayaran: ' . $e->getMessage()]);
+    }
+}
     // =============== WEBHOOK OTOMATIS (UNIVERSAL) ===============
 
     public function notification(Request $request)

@@ -107,19 +107,20 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [CheckoutController::class, 'index'])->name('index');
         Route::post('/', [CheckoutController::class, 'store'])->name('store');
     });
-    // Riwayat
-    Route::get('/riwayat', [HistoryController::class, 'index'])
-    ->name('riwayat.index');
-});
-
-// Order (produk & sewa alat)
-Route::prefix('order')->name('order.')->group(function () {
+    // Order (produk & sewa alat)
+    Route::prefix('order')->name('order.')->group(function () {
     Route::post('/', [OrderController::class, 'store'])->name('store');
     Route::get('/{order}/payment', [OrderController::class, 'payment'])->name('payment');
     Route::get('/{order}/finish', [PaymentController::class, 'finishOrder'])->name('finish');
     Route::get('/error', [PaymentController::class, 'orderError'])->name('error');
     Route::get('/{order}/success', [PaymentController::class, 'orderSuccess'])->name('success');
+    });
+    // Riwayat
+    Route::get('/riwayat', [HistoryController::class, 'index'])
+    ->name('riwayat.index');
 });
+
+
 
 /*
 |--------------------------------------------------------------------------
