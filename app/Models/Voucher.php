@@ -11,13 +11,30 @@ class Voucher extends Model
 
     protected $fillable = [
         'partner_id',
+        'name',
         'code',
         'description',
         'type',
         'value',
+        'discount_type',
+        'discount_value',
         'min_amount',
-        'max_discount',
         'quota',
         'expires_at',
+        'valid_from',
+        'valid_until',
+        'image',
+        'is_active',
     ];
+
+    protected $casts = [
+        'valid_from' => 'datetime',
+        'valid_until' => 'datetime',
+        'expires_at' => 'datetime',
+    ];
+
+    public function partner()
+    {
+        return $this->belongsTo(User::class, 'partner_id');
+    }
 }

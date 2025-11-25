@@ -19,7 +19,6 @@ return new class extends Migration
             $table->enum('type', ['percentage', 'fixed']);
             $table->integer('value');
             $table->integer('min_amount')->default(0);
-            $table->integer('max_discount')->nullable();
             $table->integer('quota')->default(0);
             $table->date('expires_at')->nullable();
             $table->timestamps();
