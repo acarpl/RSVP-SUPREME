@@ -14,8 +14,8 @@ return new class extends Migration
    Schema::create('booking_items', function (Blueprint $table) {
         $table->id();
         $table->foreignId('booking_id')->constrained()->onDelete('cascade');
-        $table->string('type'); // 'lapangan' atau 'product'
-        $table->morphs('bookable'); // untuk relasi polymorphic
+        $table->string('type');
+        $table->morphs('bookable');
         $table->string('name');
         $table->bigInteger('price');
         $table->integer('quantity')->default(1);

@@ -11,14 +11,11 @@ return new class extends Migration
         Schema::create('lapangans', function (Blueprint $table) {
             $table->id();
             $table->foreignId('partner_id')->constrained('users')->onDelete('cascade');
-            // asumsi: partner = user dengan role 'partner'
-            // jika pakai tabel 'partners' terpisah, ganti 'users' → 'partners'
-
             $table->string('nama');
             $table->string('lokasi');
             $table->integer('kapasitas')->default(0);
             $table->bigInteger('harga')->default(0);
-            $table->string('status')->default('aktif'); // 'aktif', 'nonaktif'
+            $table->string('status')->default('aktif');
             $table->string('gambar')->nullable();
 
             $table->timestamps();
