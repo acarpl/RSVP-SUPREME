@@ -23,10 +23,9 @@
         }
 
         .bg-brand { background-color: #D85C5C !important; }
-
         .text-brand { color: #D85C5C !important; }
-
         .border-brand { border-color: #D85C5C !important; }
+
         .btn-brand {
             background-color: #D85C5C;
             border-color: #D85C5C;
@@ -107,67 +106,58 @@
         [x-cloak] { display: none !important; }
 
         /* ============================
-   RESPONSIVE MOBILE IMPROVEMENTS
-   ============================ */
-@media (max-width: 576px) {
+           RESPONSIVE MOBILE IMPROVEMENTS
+           ============================ */
+        @media (max-width: 576px) {
+            main.container {
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+            }
 
-    /* Padding halaman */
-    main.container {
-        padding-left: 12px !important;
-        padding-right: 12px !important;
-    }
+            h1, h2, h3 {
+                font-size: 1.3rem !important;
+            }
 
-    /* Heading lebih kecil */
-    h1, h2, h3 {
-        font-size: 1.3rem !important;
-    }
+            h4, h5 {
+                font-size: 1.05rem !important;
+            }
 
-    h4, h5 {
-        font-size: 1.05rem !important;
-    }
+            .card {
+                border-radius: 14px !important;
+                padding: 0.75rem !important;
+            }
 
-    /* Card lebih slim */
-    .card {
-        border-radius: 14px !important;
-        padding: 0.75rem !important;
-    }
+            .form-control,
+            .form-select {
+                font-size: 0.9rem !important;
+                padding: 0.55rem 0.75rem !important;
+            }
 
-    /* Form dan input */
-    .form-control,
-    .form-select {
-        font-size: 0.9rem !important;
-        padding: 0.55rem 0.75rem !important;
-    }
+            button.btn,
+            .btn {
+                font-size: 0.9rem !important;
+                padding: 0.55rem !important;
+                border-radius: 10px !important;
+            }
 
-    button.btn,
-    .btn {
-        font-size: 0.9rem !important;
-        padding: 0.55rem !important;
-        border-radius: 10px !important;
-    }
+            footer {
+                font-size: 0.75rem;
+            }
 
-    /* Footer kecil */
-    footer {
-        font-size: 0.75rem;
-    }
+            body {
+                padding-bottom: 90px !important;
+            }
 
-    /* Jarak konten bawah biar ga numpuk sama bottom nav */
-    body {
-        padding-bottom: 90px !important;
-    }
+            .bottom-nav .nav-link i {
+                font-size: 1.1rem !important;
+            }
 
-    /* Navbar mobile icons */
-    .bottom-nav .nav-link i {
-        font-size: 1.1rem !important;
-    }
-
-    .bottom-nav .nav-link span {
-        font-size: 0.7rem !important;
-    }
-}
-
+            .bottom-nav .nav-link span {
+                font-size: 0.7rem !important;
+            }
+        }
     </style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <!-- AlpineJS -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js" defer></script>
 </head>
@@ -184,7 +174,6 @@
 
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                 <ul class="navbar-nav d-flex align-items-center gap-2">
-
                     <li class="nav-item">
                         <a class="nav-link" href="/">Beranda</a>
                     </li>
@@ -193,6 +182,13 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/products">Produk</a>
+                    </li>
+                    {{-- ✅ MENU VOUCHER --}}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('vouchers.index') }}">
+                            <i class="fas fa-ticket-alt d-md-none me-1"></i>
+                            Voucher
+                        </a>
                     </li>
 
                     @guest
@@ -205,7 +201,7 @@
                     @endguest
 
                     @auth
-                        {{-- 🛒 Cart Icon (hanya muncul jika route cart ada) --}}
+                        {{-- 🛒 Cart Icon --}}
                         @if (Route::has('cart.count'))
                             <li class="nav-item position-relative" x-data="cartDropdown()" x-init="init()" x-cloak>
                                 <button @click="toggle"
@@ -234,13 +230,11 @@
                                         </small>
                                     </div>
 
-                                    <!-- Kosong -->
                                     <div x-show="count === 0" class="px-4 py-5 text-center">
                                         <i class="fas fa-shopping-bag fa-2x text-secondary mb-2"></i>
                                         <p class="text-muted mb-0">Keranjang masih kosong</p>
                                     </div>
 
-                                    <!-- Isi -->
                                     <ul x-show="count > 0" class="list-group list-group-flush">
                                         <template x-for="item in items" :key="item.id">
                                             <li class="list-group-item px-3 py-2">
@@ -263,7 +257,6 @@
                                         </template>
                                     </ul>
 
-                                    <!-- Footer -->
                                     <div x-show="count > 0" class="px-3 pt-2 border-top">
                                         <div class="d-flex justify-content-between fw-bold mb-2">
                                             <span>Total:</span>
@@ -278,7 +271,7 @@
                             </li>
                         @endif
 
-                        <!-- 👤 User Dropdown -->
+                        {{-- 👤 USER DROPDOWN DINAMIS --}}
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
                                 <span class="rounded-circle bg-light text-brand fw-bold d-flex align-items-center justify-content-center me-2"
@@ -293,15 +286,45 @@
                                         <i class="fas fa-user me-2"></i> Profil Saya
                                     </a>
                                 </li>
-                                
                                 <li>
-    <a class="dropdown-item" href="{{ route('riwayat.index') }}">
-        <i class="fas fa-history me-2"></i> Riwayat Pesanan
-    </a>
-</li>
+                                    <a class="dropdown-item" href="{{ route('riwayat.index') }}">
+                                        <i class="fas fa-history me-2"></i> Riwayat Pesanan
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('vouchers.index') }}">
+                                        <i class="fas fa-ticket-alt me-2"></i> Voucher Saya
+                                    </a>
+                                </li>
+
                                 <li><hr class="dropdown-divider"></li>
+
+                                {{-- 🔐 SUPER ADMIN --}}
+                                @if(Auth::user()->role === 'super_admin')
+                                    <li>
+                                        <a class="dropdown-item text-primary fw-bold" href="{{ route('superadmin.dashboard') }}">
+                                            <i class="fas fa-shield-alt me-2"></i> 🔐 Super Admin Dashboard
+                                        </a>
+                                    </li>
+                                @endif
+
+                                {{-- 🏟️ PARTNER --}}
+                                @if(Auth::user()->role === 'partner')
+                                    <li>
+                                        <a class="dropdown-item text-success fw-bold" href="{{ route('partner.lapangan.index') }}">
+                                            <i class="fas fa-futbol me-2"></i> 🏟️ Kelola Lapangan
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-info" href="{{ route('partner.products.manage') }}">
+                                            <i class="fas fa-box me-2"></i> 📦 Kelola Produk
+                                        </a>
+                                    </li>
+                                @endif
+
+                                <li><hr class="dropdown-divider"></li>
+
                                 <li>
-                                    
                                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                                         @csrf
                                         <button type="submit" class="dropdown-item text-danger">
@@ -332,7 +355,7 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Cart Script (aman jika route tidak ada) -->
+    <!-- Cart Script -->
     <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('cartDropdown', () => ({
@@ -354,48 +377,46 @@
             },
 
             loadCart() {
-                // Cek apakah route cart.count tersedia
-                fetch("{{ Route::has('cart.count') ? route('cart.count') : '#' }}")
-                    .then(res => {
-                        if (res.ok && res.url !== location.origin + '/') {
-                            return res.json();
-                        } else {
-                            throw new Error('Cart route not available');
-                        }
-                    })
+                const cartCountRoute = "{{ Route::has('cart.count') ? route('cart.count') : '' }}";
+                if (!cartCountRoute) {
+                    this.count = 0;
+                    this.items = [];
+                    return;
+                }
+
+                fetch(cartCountRoute)
+                    .then(res => res.json())
                     .then(data => {
                         this.count = data.total_items || 0;
                         this.totalItems = data.total_items || 0;
                         this.totalPrice = data.total_price || 0;
                         this.items = data.items || [];
                     })
-                    .catch(err => {
-                        // Silent fail — tidak munculkan error di console
+                    .catch(() => {
                         this.count = 0;
                         this.items = [];
                     });
             },
 
             remove(productId) {
-    if (!confirm('Hapus dari keranjang?')) return;
+                if (!confirm('Hapus dari keranjang?')) return;
 
-    // ✅ PERBAIKAN: Gunakan URL langsung & dynamic productId
-    fetch(`/cart/remove/${productId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ product_id: productId })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            this.loadCart();
-        }
-    })
-    .catch(err => console.error('Cart remove error:', err));
-}
+                fetch(`/cart/remove/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ product_id: productId })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        this.loadCart();
+                    }
+                })
+                .catch(err => console.error('Cart remove error:', err));
+            }
         }));
     });
     </script>

@@ -136,6 +136,9 @@ Route::middleware(['auth', 'role:partner,super_admin'])
     ->group(function () {
 
     Route::get('/dashboard', [PartnerController::class, 'dashboard'])->name('dashboard');
+    Route::get('/konfirmasi', [PartnerController::class, 'confirmations'])->name('confirmations');
+    Route::post('/booking/{booking}/konfirmasi', [PartnerController::class, 'confirmBooking'])->name('booking.confirm');
+    Route::post('/order/{order}/konfirmasi', [PartnerController::class, 'confirmOrder'])->name('order.confirm');
     Route::post('/leave', [ProfileController::class, 'leavePartner'])->name('leave');
 
     // Produk
@@ -169,8 +172,8 @@ Route::middleware(['auth', 'role:partner,super_admin'])
     });
     
     Route::get('/konfirmasi', [PartnerController::class, 'confirmations'])->name('confirmations');
-Route::post('/booking/{booking}/konfirmasi', [PartnerController::class, 'confirmBooking'])->name('booking.confirm');
-// Route::post('/order/{order}/konfirmasi', [PartnerController::class, 'confirmOrder'])->name('order.confirm');
+    Route::post('/booking/{booking}/konfirmasi', [PartnerController::class, 'confirmBooking'])->name('booking.confirm');
+    Route::post('/order/{order}/konfirmasi', [PartnerController::class, 'confirmOrder'])->name('order.confirm');
 
 });
 

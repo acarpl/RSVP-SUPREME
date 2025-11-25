@@ -15,22 +15,66 @@ class PartnerController extends Controller
      * Tampilkan dashboard partner
      */
     public function dashboard()
-    {
-        $partner = Auth::user();
-        
-        // Statistik
-        $stats = [
-            'bookings_today' => Booking::whereDate('tanggal', now()->toDateString())
-                ->whereHas('lapangan', fn($q) => $q->where('partner_id', $partner->id))
-                ->count(),
-            'pending_confirmations' => Booking::where('status', 'dibayar')
-                ->where('partner_status', 'menunggu_konfirmasi')
-                ->whereHas('lapangan', fn($q) => $q->where('partner_id', $partner->id))
-                ->count(),
-        ];
+{
+    $partner = Auth::user();
+    $partnerId = $partner->id;
 
-        return view('partner.dashboard', compact('stats'));
+    // Data statistik
+    $totalLapangan = \App\Models\Lapangan::where('partner_id', $partnerId)->count();
+    $totalBooking = \App\Models\Booking::whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))->count();
+    $confirmedBookings = \App\Models\Booking::whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
+        ->where('partner_status', 'dikonfirmasi')
+        ->count();
+    $pendingConfirmations = \App\Models\Booking::whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
+        ->where('status', 'dibayar')
+        ->where('partner_status', 'menunggu_konfirmasi')
+        ->count();
+    $pendapatan = \App\Models\Booking::whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
+        ->where('partner_status', 'dikonfirmasi')
+        ->sum('total_harga');
+
+    // Booking terbaru (10)
+    $latestBookings = \App\Models\Booking::with(['user', 'lapangan'])
+        ->whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
+        ->where('status', 'dibayar')
+        ->latest()
+        ->take(5)
+        ->get();
+
+    // Data chart (30 hari terakhir)
+    $bookingsChart = [];
+    for ($i = 29; $i >= 0; $i--) {
+        $date = now()->subDays($i);
+        $dateStr = $date->format('Y-m-d');
+        
+        $pending = \App\Models\Booking::whereDate('created_at', $dateStr)
+            ->whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
+            ->where('status', 'dibayar')
+            ->where('partner_status', 'menunggu_konfirmasi')
+            ->count();
+            
+        $confirmed = \App\Models\Booking::whereDate('created_at', $dateStr)
+            ->whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
+            ->where('partner_status', 'dikonfirmasi')
+            ->count();
+
+        $bookingsChart[] = [
+            'date' => $date->format('d M'),
+            'pending' => $pending,
+            'confirmed' => $confirmed
+        ];
     }
+
+    return view('partner.dashboard', compact(
+        'totalLapangan',
+        'totalBooking',
+        'confirmedBookings',
+        'pendingConfirmations',
+        'pendapatan',
+        'latestBookings',
+        'bookingsChart'
+    ));
+}
 
     /**
      * Tampilkan form daftar mitra

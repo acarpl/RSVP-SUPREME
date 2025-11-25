@@ -80,7 +80,7 @@
                         <i class="fas fa-tachometer-alt me-2"></i>Dashboard Mitra
                     </a>
                 @elseif(auth()->user()->role === 'super_admin')
-                    <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-light btn-lg px-5">
+                    <a href="{{ route('superadmin.dashboard') }}" class="btn btn-outline-light btn-lg px-5">
                         <i class="fas fa-tools me-2"></i>Admin Panel
                     </a>
                 @endif

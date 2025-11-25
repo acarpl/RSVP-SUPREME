@@ -15,33 +15,30 @@ class SuperAdminUserController extends Controller
 
     public function edit(User $user)
     {
+        if ($user->role === 'super_admin') abort(403);
         return view('superadmin.users.edit', compact('user'));
     }
 
     public function update(Request $request, User $user)
     {
+        if ($user->role === 'super_admin') abort(403);
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role' => 'required|in:customer,partner,super_admin',
+            'role' => 'required|in:customer,partner',
         ]);
 
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'role' => $request->role,
-        ]);
+        $user->update($request->only(['name', 'email', 'role']));
 
-        return redirect()->route('superadmin.users.index')->with('success', 'User berhasil diperbarui.');
+        return redirect()->route('superadmin.users.index')
+                         ->with('success', '✅ User berhasil diperbarui.');
     }
 
     public function destroy(User $user)
     {
-        if ($user->role === 'super_admin') {
-            return back()->withErrors('Tidak bisa menghapus Super Admin lain.');
-        }
-
+        if ($user->role === 'super_admin') abort(403);
         $user->delete();
-        return redirect()->route('superadmin.users.index')->with('success', 'User berhasil dihapus.');
+        return redirect()->back()->with('success', '🗑️ User berhasil dihapus.');
     }
 }
