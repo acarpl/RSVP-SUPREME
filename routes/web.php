@@ -8,6 +8,7 @@ use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HistoryController;
 use App\Models\Lapangan;
@@ -97,6 +98,9 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/error', [PaymentController::class, 'error'])
             ->name('error');
+
+        Route::get('/payment/process/{booking}', [PaymentController::class, 'process'])
+            ->name('process');
         
     });
     Route::prefix('checkout')->name('checkout.')->group(function () {
@@ -106,6 +110,15 @@ Route::middleware(['auth'])->group(function () {
     // Riwayat
     Route::get('/riwayat', [HistoryController::class, 'index'])
     ->name('riwayat.index');
+});
+
+// Order (produk & sewa alat)
+Route::prefix('order')->name('order.')->group(function () {
+    Route::post('/', [OrderController::class, 'store'])->name('store');
+    Route::get('/{order}/payment', [OrderController::class, 'payment'])->name('payment');
+    Route::get('/{order}/finish', [PaymentController::class, 'finishOrder'])->name('finish');
+    Route::get('/error', [PaymentController::class, 'orderError'])->name('error');
+    Route::get('/{order}/success', [PaymentController::class, 'orderSuccess'])->name('success');
 });
 
 /*
@@ -163,15 +176,6 @@ Route::middleware(['auth', 'role:super_admin'])
     ->group(function () {
         Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
     });
-
-// Checkout produk
-Route::middleware(['auth'])->prefix('checkout')->name('checkout.')->group(function () {
-    Route::get('/', [CheckoutController::class, 'index'])->name('index');
-    Route::post('/', [CheckoutController::class, 'store'])->name('store');
-    Route::get('/payment/{order}', [CheckoutController::class, 'payment'])->name('payment');
-    Route::get('/finish/{order}', [CheckoutController::class, 'finish'])->name('finish');
-    Route::get('/error', [CheckoutController::class, 'error'])->name('error');
-});
 
 // Order detail
 Route::middleware(['auth'])->prefix('order')->name('order.')->group(function () {

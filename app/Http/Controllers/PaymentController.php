@@ -3,21 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use App\Models\Lapangan;
 use App\Models\Order;
+use App\Models\Lapangan;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\FacadesLog;
 use Illuminate\Support\Facades\Log;
 use Midtrans\Config;
-use Midtrans\Transaction;
 use Midtrans\Notification;
+use Midtrans\Snap;
+use Midtrans\Transaction;
 
 class PaymentController extends Controller
 {
     public function __construct()
     {
-        // ✅ Pastikan curlOptions selalu array (fix "Undefined array key 10023" di PHP 8.4+)
+        // ✅ Fix PHP 8.4 curlOptions issue
         Config::$curlOptions = Config::$curlOptions ?? [];
 
         // ✅ SSL bypass hanya untuk local (aman untuk dev)
@@ -28,7 +29,7 @@ class PaymentController extends Controller
 
         // ✅ Set konfigurasi Midtrans
         Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-        Config::$isProduction = env('MIDTRANS_IS_PRODUCTION', false);
+        Config::$isProduction = filter_var(env('MIDTRANS_IS_PRODUCTION', false), FILTER_VALIDATE_BOOLEAN);
         Config::$isSanitized = true;
         Config::$is3ds = true;
 
@@ -38,7 +39,7 @@ class PaymentController extends Controller
         }
     }
 
-    // =============== USER FLOW ===============
+    // =============== BOOKING LAPANGAN ===============
 
     public function create($lapanganId)
     {
@@ -59,7 +60,7 @@ class PaymentController extends Controller
 
         $lapangan = Lapangan::findOrFail($lapanganId);
         $jamMulai = $request->jam_mulai;
-        $jamSelesai = date('H:i', strtotime("$jamMulai +{$request->durasi} hours"));
+        $jamSelesai = date('H:i:s', strtotime("$jamMulai +{$request->durasi} hours"));
 
         // Cek ketersediaan
         $bentrok = Booking::where('lapangan_id', $lapangan->id)
@@ -83,11 +84,13 @@ class PaymentController extends Controller
             return back()->withErrors(['harga' => 'Harga tidak valid. Hubungi admin.']);
         }
 
+        // ✅ Simpan dengan format waktu H:i:s & jenis_pesanan
         $booking = Booking::create([
             'user_id' => Auth::id(),
+            'jenis_pesanan' => 'lapangan',
             'lapangan_id' => $lapangan->id,
             'tanggal' => $request->tanggal,
-            'jam_mulai' => $jamMulai,
+            'jam_mulai' => $jamMulai . ':00',
             'jam_selesai' => $jamSelesai,
             'durasi' => $request->durasi,
             'total_harga' => $totalHarga,
@@ -95,10 +98,10 @@ class PaymentController extends Controller
         ]);
 
         return redirect()->route('payment.redirect', $booking)
-                        ->with('info', 'Silakan selesaikan pembayaran dalam 15 menit.');
+            ->with('info', 'Silakan selesaikan pembayaran dalam 15 menit.');
     }
 
-    // =============== MIDTRANS SNAP REDIRECT ===============
+    // =============== MIDTRANS SNAP: BOOKING LAPANGAN ===============
 
     public function redirect(Booking $booking)
     {
@@ -122,7 +125,7 @@ class PaymentController extends Controller
                 'id' => 'booking-' . $booking->id,
                 'price' => (int) $booking->total_harga,
                 'quantity' => 1,
-                'name' => 'Booking ' . $booking->lapangan->nama,
+                'name' => 'Booking ' . ($booking->lapangan->nama ?? 'Lapangan'),
             ]],
             'credit_card' => ['secure' => true],
             'finish_redirect_url' => route('payment.finish', $booking),
@@ -131,158 +134,174 @@ class PaymentController extends Controller
         ];
 
         try {
-            $snapResponse = \Midtrans\Snap::createTransaction($payload);
+            $snapResponse = Snap::createTransaction($payload);
             $booking->update(['order_id' => $orderId]);
             return redirect()->away($snapResponse->redirect_url);
-
         } catch (\Exception $e) {
-            Log::error('Midtrans Snap Error', [
+            Log::error('Midtrans Snap Error (Lapangan)', [
                 'booking_id' => $booking->id,
-                'order_id' => $orderId ?? 'null',
+                'order_id' => $orderId,
                 'message' => $e->getMessage(),
             ]);
-
-            if (app()->environment('local')) {
-                abort(500, "Midtrans Error: " . $e->getMessage());
-            }
-
             return back()->withErrors(['Pembayaran gagal dibuka. Silakan coba lagi.']);
         }
     }
 
-    // =============== WEBHOOK OTOMATIS (Midtrans → Server) ===============
+    // =============== MIDTRANS SNAP: ORDER (PRODUK / SEWA ALAT) ===============
+
+    public function processOrder(Order $order)
+    {
+        if ($order->user_id !== Auth::id() || $order->status !== 'menunggu_pembayaran') {
+            abort(403, 'Order tidak valid.');
+        }
+
+        $orderId = 'ORDER-' . now()->format('YmdHis') . '-' . $order->id;
+
+        $items = $order->items->map(function ($item) {
+            return [
+                'id' => 'prod-' . $item->product_id,
+                'price' => (int) $item->price,
+                'quantity' => (int) $item->quantity,
+                'name' => $item->name,
+            ];
+        })->values()->all();
+
+        if (empty($items)) {
+            return back()->withErrors(['Pesanan tidak memiliki item.']);
+        }
+
+        $payload = [
+            'transaction_details' => [
+                'order_id' => $orderId,
+                'gross_amount' => (int) $order->total_harga,
+            ],
+            'customer_details' => [
+                'first_name' => Auth::user()->name,
+                'email' => Auth::user()->email,
+                'phone' => Auth::user()->phone ?: '081234567890',
+                'billing_address' => $order->jenis_pesanan === 'beli_produk'
+                    ? [
+                        'first_name' => Auth::user()->name,
+                        'address' => $order->alamat ?? '-',
+                        'city' => 'Kota Bekasi',
+                        'postal_code' => '17143',
+                        'country_code' => 'ID',
+                    ] : null,
+            ],
+            'item_details' => $items,
+            'credit_card' => ['secure' => true],
+            'finish_redirect_url' => route('order.finish', $order),
+            'unfinish_redirect_url' => route('order.error'),
+            'error_redirect_url' => route('order.error'),
+        ];
+
+        try {
+            $snapResponse = Snap::createTransaction($payload);
+            $order->update(['order_id_midtrans' => $orderId]);
+            return redirect()->away($snapResponse->redirect_url);
+        } catch (\Exception $e) {
+            Log::error('Midtrans Snap Error (Order)', [
+                'order_id' => $order->id,
+                'message' => $e->getMessage(),
+            ]);
+            return back()->withErrors(['Gagal membuka pembayaran. Silakan coba lagi.']);
+        }
+    }
+
+    // =============== WEBHOOK OTOMATIS (UNIVERSAL) ===============
 
     public function notification(Request $request)
-{
-    Log::info('Webhook received: Midtrans notification triggered');
+    {
+        Log::info('Webhook received: Midtrans notification triggered');
 
-    try {
-        // ✅ Ambil notifikasi dari Midtrans (otomatis parse JSON request body)
-        $notif = new Notification();
+        try {
+            $notif = new Notification();
 
-        $order_id_midtrans = $notif->order_id;
-        $transaction_status = $notif->transaction_status;
-        $fraud_status = $notif->fraud_status;
-        $gross_amount = $notif->gross_amount;
+            $order_id_midtrans = $notif->order_id;
+            $transaction_status = $notif->transaction_status;
+            $fraud_status = $notif->fraud_status;
 
-        Log::info('Webhook data', [
-            'order_id_midtrans' => $order_id_midtrans,
-            'transaction_status' => $transaction_status,
-            'fraud_status' => $fraud_status,
-            'gross_amount' => $gross_amount,
-        ]);
-
-        // 🔍 Cari booking (lapangan)
-        $booking = Booking::where('order_id', $order_id_midtrans)->first();
-        $order = null;
-
-        // 🔍 Cari order (produk) — jika tidak ketemu booking
-        if (!$booking) {
-            $order = Order::where('order_id_midtrans', $order_id_midtrans)->first();
-        }
-
-        // ❌ Tidak ditemukan di booking maupun order
-        if (!$booking && !$order) {
-            Log::warning('Booking/Order not found for order_id', [
-                'midtrans_order_id' => $order_id_midtrans,
-            ]);
-            return response('Booking/Order not found', 404);
-        }
-
-        // ✅ Mapping status Midtrans → status lokal
-        $newStatus = 'menunggu_pembayaran';
-        $paymentStatus = 'pending';
-
-        if (in_array($transaction_status, ['capture', 'settlement']) && $fraud_status === 'accept') {
-            $newStatus = 'dibayar';
-            $paymentStatus = 'settlement';
-        } elseif ($transaction_status === 'pending') {
-            $newStatus = 'menunggu_pembayaran';
-            $paymentStatus = 'pending';
-        } elseif (in_array($transaction_status, ['deny', 'cancel', 'expire'])) {
-            $newStatus = 'dibatalkan';
-            $paymentStatus = 'cancel';
-        } elseif ($transaction_status === 'settlement' && $fraud_status === 'challenge') {
-            $newStatus = 'menunggu_verifikasi';
-            $paymentStatus = 'challenge';
-        }
-
-        // ✅ Update status sesuai tipe entitas
-        if ($booking) {
-            $oldStatus = $booking->status;
-            $booking->update([
-                'status' => $newStatus,
-                // opsional: simpan payment_status di booking jika kolom tersedia
+            Log::info('Webhook data', [
+                'order_id_midtrans' => $order_id_midtrans,
+                'transaction_status' => $transaction_status,
+                'fraud_status' => $fraud_status,
             ]);
 
-            Log::info('Booking status updated', [
-                'booking_id' => $booking->id,
-                'order_id' => $booking->order_id,
-                'old_status' => $oldStatus,
-                'new_status' => $newStatus,
-            ]);
+            // 🔍 Cari booking atau order
+            $booking = Booking::where('order_id', $order_id_midtrans)->first();
+            $order = $booking ? null : Order::where('order_id_midtrans', $order_id_midtrans)->first();
 
-            // 🔔 Opsional: kirim notifikasi/push/email ke user
-            // event(new BookingStatusUpdated($booking));
+            if (!$booking && !$order) {
+                Log::warning('Booking/Order not found', ['order_id' => $order_id_midtrans]);
+                return response('OK', 200); // Midtrans butuh 200
+            }
+
+            // ✅ Mapping status
+            $newStatus = match(true) {
+                in_array($transaction_status, ['capture', 'settlement']) && $fraud_status === 'accept' => 'dibayar',
+                $transaction_status === 'pending' => 'menunggu_pembayaran',
+                in_array($transaction_status, ['deny', 'cancel', 'expire']) => 'dibatalkan',
+                $transaction_status === 'settlement' && $fraud_status === 'challenge' => 'menunggu_verifikasi',
+                default => 'menunggu_pembayaran',
+            };
+
+            // ✅ Update status & kurangi stok
+            if ($booking) {
+                $booking->update(['status' => $newStatus]);
+                Log::info('Booking status updated', [
+                    'id' => $booking->id,
+                    'jenis' => $booking->jenis_pesanan ?? 'lapangan',
+                    'status' => $newStatus,
+                ]);
+            }
+
+            if ($order) {
+                $order->update(['status' => $newStatus]);
+
+                // 🟢 Kurangi stok saat dibayar
+                if ($newStatus === 'dibayar') {
+                    foreach ($order->items as $item) {
+                        if ($item->product) {
+                            $item->product->decrement('stock', $item->quantity);
+                            Log::info('Stock decreased', [
+                                'product' => $item->product->name,
+                                'qty' => $item->quantity,
+                            ]);
+                        }
+                    }
+                }
+
+                Log::info('Order status updated', [
+                    'id' => $order->id,
+                    'jenis' => $order->jenis_pesanan,
+                    'status' => $newStatus,
+                ]);
+            }
+
+            return response('OK', 200);
+
+        } catch (\Exception $e) {
+            Log::error('Webhook error', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response('OK', 200); // tetap 200
         }
-
-        if ($order) {
-            $oldStatus = $order->status;
-            $order->update([
-                'status' => $newStatus,
-                'payment_status' => $paymentStatus,
-            ]);
-
-            Log::info('Order status updated', [
-                'order_id' => $order->id,
-                'order_number' => $order->order_number,
-                'midtrans_order_id' => $order_id_midtrans,
-                'old_status' => $oldStatus,
-                'new_status' => $newStatus,
-            ]);
-
-            // 🔔 Opsional: kurangi stok hanya saat dibayar (jika stok dikurangi saat checkout, abaikan)
-            // if ($newStatus === 'dibayar') {
-            //     foreach ($order->items as $item) {
-            //         $item->product()->decrement('stock', $item->quantity);
-            //     }
-            // }
-        }
-
-        // ✅ Sukses — Midtrans butuh response 200 + "OK"
-        return response('OK', 200);
-
-    } catch (\Exception $e) {
-        Log::error('Webhook processing error', [
-            'message' => $e->getMessage(),
-            'trace' => $e->getTraceAsString(),
-        ]);
-
-        // Tetap kirim 200 agar Midtrans tidak retry terus (best practice)
-        // Tapi log error untuk debugging manual
-        return response('OK', 200);
     }
-}
 
-    // =============== MANUAL FINISH (User klik "Selesai") ===============
+    // =============== MANUAL FINISH ===============
 
     public function finish(Booking $booking)
     {
-        if ($booking->user_id !== Auth::id()) {
-            abort(403);
-        }
+        if ($booking->user_id !== Auth::id()) abort(403);
 
         try {
             $status = Transaction::status($booking->order_id);
-            $transaction_status = $status->transaction_status ?? 'unknown';
-            $fraud_status = $status->fraud_status ?? 'accept';
-
-            $newStatus = 'menunggu_pembayaran';
-            if (in_array($transaction_status, ['capture', 'settlement']) && $fraud_status === 'accept') {
-                $newStatus = 'dibayar';
-            } elseif (in_array($transaction_status, ['cancel', 'expire'])) {
-                $newStatus = 'dibatalkan';
-            }
+                $newStatus = match(true) {
+                    in_array($status['transaction_status'] ?? '', ['capture', 'settlement']) && $status['fraud_status'] ?? '' === 'accept' => 'dibayar',
+                    in_array($status['transaction_status'] ?? '', ['cancel', 'expire']) => 'dibatalkan',
+                    default => 'menunggu_pembayaran',
+                };
 
             $booking->update(['status' => $newStatus]);
 
@@ -303,9 +322,48 @@ class PaymentController extends Controller
         }
     }
 
+    public function finishOrder(Order $order)
+    {
+        if ($order->user_id !== Auth::id()) abort(403);
+
+        try {
+            $status = (object) Transaction::status($order->order_id_midtrans);
+            $newStatus = $status->transaction_status === 'settlement' ? 'dibayar' : 'menunggu_pembayaran';
+            $order->update(['status' => $newStatus]);
+
+            if ($newStatus === 'dibayar') {
+                foreach ($order->items as $item) {
+                    $item->product?->decrement('stock', $item->quantity);
+                }
+                return redirect()->route('order.success', $order)
+                    ->with('success', '✅ Pesanan berhasil!');
+            }
+
+            return back()->with('warning', 'Menunggu pembayaran.');
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['Gagal verifikasi.']);
+        }
+    }
+
+    // =============== ERROR HANDLER ===============
+
     public function error()
     {
         return redirect()->route('booking.index')
             ->with('error', '❌ Pembayaran dibatalkan atau gagal.');
+    }
+
+    public function orderError()
+    {
+        return redirect()->route('cart.index')
+            ->with('error', '❌ Pembayaran dibatalkan.');
+    }
+
+    // =============== SUCCESS VIEW ===============
+
+    public function orderSuccess(Order $order)
+    {
+        return view('order.success', compact('order'));
     }
 }

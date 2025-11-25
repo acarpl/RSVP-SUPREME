@@ -6,7 +6,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-// use laravel\Passport\HasApiTokens;
+use laravel\Passport\HasApiTokens;
 
 class AuthController extends Controller
 {
@@ -14,7 +14,7 @@ class AuthController extends Controller
         $userData = Validator::make($request->all(), [
             'email' => 'required',
             'password' => 'required'
-        ]);           n    
+        ]);
         if ($userData->fails()) {
             return response()->json($userData->errors(), 422);
         }

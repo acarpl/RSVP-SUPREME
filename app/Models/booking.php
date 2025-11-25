@@ -13,7 +13,7 @@ class Booking extends Model
         'jam_mulai',
         'jam_selesai',
         'durasi',
-        'alamat_pengiriman', // ✅ Untuk beli produk
+        'alamat_pengiriman',
         'total_harga',
         'order_id',
         'snap_token',
@@ -22,8 +22,8 @@ class Booking extends Model
 
     protected $casts = [
         'tanggal' => 'date',
-        'jam_mulai' => 'time',
-        'jam_selesai' => 'time',
+        'jam_mulai' => 'string',
+        'jam_selesai' => 'string',
     ];
 
     // ✅ Jenis pesanan

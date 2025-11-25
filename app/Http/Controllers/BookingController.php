@@ -68,7 +68,7 @@ class BookingController extends Controller
             'jam_selesai' => $jamSelesai->format('H:i'),
             'durasi' => $request->durasi,
             'total_harga' => $lapangan->harga * $request->durasi,
-            'status' => 'menunggu_pembayaran', // ✅ Sesuai alur Midtrans
+            'status' => 'menunggu_pembayaran',
         ]);
 
         // Redirect ke Midtrans

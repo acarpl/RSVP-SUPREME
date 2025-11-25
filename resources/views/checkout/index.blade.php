@@ -19,7 +19,7 @@
                     <h5 class="mb-0 fw-bold"><i class="fas fa-shopping-cart me-2"></i> Jenis Pesanan</h5>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('checkout.store') }}" method="POST">
+                    <form action="{{ route('order.store') }}" method="POST">
                         @csrf
 
                         <!-- Opsi: Beli / Sewa -->
@@ -28,7 +28,7 @@
                             <div class="form-check mb-2">
                                 <input type="radio" name="jenis_pesanan" id="beli_produk" value="beli_produk" class="form-check-input" checked>
                                 <label class="form-check-label" for="beli_produk">
-                                    <strong>Beli Produk</strong> (Kirim ke alamat Anda)
+                                    <strong>Beli Produk</strong> (Kirim ke alamat_pengiriman Anda pada form alamat_pengiriman atau tulis diambil di lapangan pada form alamat_pengiriman)
                                 </label>
                             </div>
                             <div class="form-check">
@@ -40,7 +40,7 @@
                         </div>
 
                         <!-- Alamat (hanya muncul jika beli_produk) -->
-                        <div id="alamat_section">
+                        <div id="alamat_pengiriman_section">
                             <div class="mb-3">
                                 <label class="form-label fw-medium">Alamat Pengiriman <span class="text-danger">*</span></label>
                                 <textarea name="alamat_pengiriman"
@@ -150,27 +150,44 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const jenisPesanan = document.querySelectorAll('input[name="jenis_pesanan"]');
-        const alamatSection = document.getElementById('alamat_section');
-        const jadwalSection = document.getElementById('jadwal_section');
+document.addEventListener('DOMContentLoaded', function() {
+    const jenisPesanan = document.querySelectorAll('input[name="jenis_pesanan"]');
+    const alamat_pengirimanField = document.querySelector('textarea[name="alamat_pengiriman"]');
+    const tanggalField = document.querySelector('input[name="tanggal"]');
+    const jamField = document.querySelector('select[name="jam_mulai"]');
+    const durasiField = document.querySelector('select[name="durasi"]');
 
-        // Toggle section berdasarkan pilihan
-        jenisPesanan.forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.value === 'beli_produk') {
-                    alamatSection.style.display = 'block';
-                    jadwalSection.style.display = 'none';
-                } else if (this.value === 'sewa_alat') {
-                    alamatSection.style.display = 'none';
-                    jadwalSection.style.display = 'block';
-                }
+    function updateValidation() {
+        const isBeli = document.getElementById('beli_produk').checked;
+        
+        // Atur required & disabled dinamis
+        if (isBeli) {
+            // Beli Produk: alamat_pengiriman wajib, jadwal nonaktif
+            alamat_pengirimanField.setAttribute('required', 'required');
+            alamat_pengirimanField.disabled = false;
+            [tanggalField, jamField, durasiField].forEach(el => {
+                el.removeAttribute('required');
+                el.disabled = true;
             });
-        });
+        } else {
+            // Sewa Alat: jadwal wajib, alamat_pengiriman nonaktif
+            alamat_pengirimanField.removeAttribute('required');
+            alamat_pengirimanField.disabled = true;
+            [tanggalField, jamField, durasiField].forEach(el => {
+                el.setAttribute('required', 'required');
+                el.disabled = false;
+            });
+        }
+    }
 
-        // Trigger change saat load
-        document.querySelector('input[value="beli_produk"]').dispatchEvent(new Event('change'));
+    // Trigger saat ganti opsi
+    jenisPesanan.forEach(radio => {
+        radio.addEventListener('change', updateValidation);
     });
+
+    // Inisialisasi awal
+    updateValidation();
+});
 </script>
 @endpush
 @endsection
