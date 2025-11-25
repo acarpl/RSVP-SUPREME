@@ -41,12 +41,14 @@ Route::post('/midtrans/notification', [PaymentController::class, 'notification']
 | CART ROUTES (SEMUA USER — DIPERLUKAN AUTH)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->prefix('cart')->name('cart.')->group(function () {
+Route::prefix('cart')->name('cart.')->group(function () {
     Route::get('/', [CartController::class, 'index'])->name('index');
-    Route::post('/add/{product}', [CartController::class, 'add'])->name('add'); 
-    Route::post('/remove', [CartController::class, 'remove'])->name('remove');
+    Route::post('/add/{productId}', [CartController::class, 'add'])->name('add');
+    Route::post('/remove/{productId}', [CartController::class, 'remove'])->name('remove');
     Route::post('/update', [CartController::class, 'update'])->name('update');
     Route::get('/count', [CartController::class, 'count'])->name('count');
+    Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
+    Route::post('/checkout', [CartController::class, 'processCheckout'])->name('process');
 });
 
 /*
@@ -54,7 +56,7 @@ Route::middleware(['auth'])->prefix('cart')->name('cart.')->group(function () {
 | AUTH REQUIRED (CUSTOMER & PARTNER)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth'])->group(function () { 
 
     // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

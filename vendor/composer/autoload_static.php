@@ -376,8 +376,8 @@ class ComposerStaticInit2a05d459278646e944ab4e1dc01bab7f
         ),
         'Psr\\Http\\Server\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-server-middleware/src',
-            1 => __DIR__ . '/..' . '/psr/http-server-handler/src',
+            0 => __DIR__ . '/..' . '/psr/http-server-handler/src',
+            1 => __DIR__ . '/..' . '/psr/http-server-middleware/src',
         ),
         'Psr\\Http\\Message\\' => 
         array (
@@ -634,6 +634,7 @@ class ComposerStaticInit2a05d459278646e944ab4e1dc01bab7f
         'App\\Http\\Controllers\\Auth\\VerifyEmailController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/VerifyEmailController.php',
         'App\\Http\\Controllers\\BookingController' => __DIR__ . '/../..' . '/app/Http/Controllers/BookingController.php',
         'App\\Http\\Controllers\\CartController' => __DIR__ . '/../..' . '/app/Http/Controllers/CartController.php',
+        'App\\Http\\Controllers\\CheckoutController' => __DIR__ . '/../..' . '/app/Http/Controllers/CheckoutController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Controllers\\FieldController' => __DIR__ . '/../..' . '/app/Http/Controllers/FieldController.php',
         'App\\Http\\Controllers\\FieldTypeController' => __DIR__ . '/../..' . '/app/Http/Controllers/FieldTypeController.php',

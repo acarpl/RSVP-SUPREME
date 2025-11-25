@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'SPORTYKUY')</title>
 
     <!-- Bootstrap CSS -->
@@ -369,26 +370,25 @@
             },
 
             remove(productId) {
-                if (!confirm('Hapus dari keranjang?')) return;
+    if (!confirm('Hapus dari keranjang?')) return;
 
-                const url = "{{ Route::has('cart.remove') ? route('cart.remove') : '#' }}";
-                if (url === '#') return;
-
-                fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({ product_id: productId })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        this.loadCart();
-                    }
-                });
-            }
+    // ✅ PERBAIKAN: Gunakan URL langsung & dynamic productId
+    fetch(`/cart/remove/${productId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ product_id: productId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            this.loadCart();
+        }
+    })
+    .catch(err => console.error('Cart remove error:', err));
+}
         }));
     });
     </script>
