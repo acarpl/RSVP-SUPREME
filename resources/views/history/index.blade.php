@@ -11,34 +11,42 @@
         <h1 class="fw-bold text-brand mb-0">Riwayat Pesanan</h1>
     </div>
 
-    @if($bookings->count())
+    @if($paginated->count())
         <div class="row g-4">
-            @foreach($bookings as $booking)
+            @foreach($paginated as $item)
                 <div class="col-12">
                     <div class="card border-0 shadow-sm rounded-3">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
                                     <h5 class="mb-1">
-                                        @if($booking->alamat_pengiriman)
+                                        @if($item['has_alamat'])
                                             <i class="fas fa-box text-primary me-2"></i> Beli Produk
+                                        @elseif($item['jenis'] === 'sewa_alat')
+                                            <i class="fas fa-futbol text-success me-2"></i> Sewa Lapangan
+                                        @elseif($item['jenis'] === 'lapangan')
+                                            <i class="fas fa-futbol text-info me-2"></i> Booking Lapangan
                                         @else
-                                            <i class="fas fa-futbol text-success me-2"></i> Sewa Alat
+                                            <i class="fas fa-receipt text-muted me-2"></i> Pesanan
                                         @endif
                                     </h5>
                                     <p class="text-muted mb-0">
-                                        {{ $booking->created_at->format('d M Y H:i') }}
+                                        {{ $item['created_at']->format('d M Y H:i') }}
+                                        <span class="badge bg-light text-dark ms-2">
+                                            #{{ $item['type'] }}-{{ $item['id'] }}
+                                        </span>
                                     </p>
                                 </div>
                                 <div class="text-end">
                                     <div class="fw-bold text-primary fs-5">
-                                        Rp {{ number_format($booking->total_harga) }}
+                                        Rp {{ number_format($item['total_harga']) }}
                                     </div>
                                     <span class="badge 
-                                        @if($booking->status == 'dibayar') bg-success text-white
-                                        @elseif($booking->status == 'menunggu_pembayaran') bg-warning text-dark
+                                        @if($item['status'] == 'dibayar') bg-success text-white
+                                        @elseif($item['status'] == 'menunggu_pembayaran') bg-warning text-dark
+                                        @elseif($item['status'] == 'dibatalkan') bg-danger text-white
                                         @else bg-secondary text-white @endif">
-                                        {{ ucfirst($booking->status) }}
+                                        {{ ucfirst(str_replace('_', ' ', $item['status'])) }}
                                     </span>
                                 </div>
                             </div>
@@ -48,7 +56,7 @@
             @endforeach
         </div>
 
-        {{ $bookings->links() }}
+        {{ $paginated->links() }}
 
     @else
         <div class="text-center py-5">

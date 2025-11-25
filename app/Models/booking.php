@@ -55,4 +55,16 @@ class Booking extends Model
     {
         return $this->hasMany(BookingItem::class);
     }
+
+    public function confirmedByPartner()
+    {
+        return $this->belongsTo(User::class, 'confirmed_by_partner_id');
+    }
+    
+    public function canBeConfirmedByPartner($partnerId)
+    {
+        return $this->lapangan?->partner_id == $partnerId && 
+               $this->status === 'dibayar' && 
+               $this->partner_status === 'menunggu_konfirmasi';
+    }
 }

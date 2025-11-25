@@ -26,4 +26,18 @@ class Order extends Model
     {
         return 'SPORTY-ORD-' . now()->format('Ymd') . '-' . str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);
     }
+
+    public function confirmedByPartner()
+{
+    return $this->belongsTo(User::class, 'confirmed_by_partner_id');
+}
+
+// Untuk order produk yang dikirim partner (opsional)
+public function canBeConfirmedByPartner($partnerId)
+{
+    // Jika order berisi produk milik partner ini
+    return $this->items->contains(function ($item) use ($partnerId) {
+        return $item->product->partner_id == $partnerId;
+    }) && $this->status === 'dibayar' && $this->partner_status === 'menunggu_konfirmasi';
+}
 }

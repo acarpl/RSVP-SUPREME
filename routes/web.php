@@ -11,6 +11,9 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\SuperAdminController;
+use App\Http\Controllers\SuperAdminUserController;
+use App\Http\Controllers\SuperAdminPartnerController;
 use App\Models\Lapangan;
 
 /*
@@ -165,6 +168,10 @@ Route::middleware(['auth', 'role:partner,super_admin'])
         Route::delete('/{lapangan}', [LapanganController::class, 'destroy'])->name('destroy');
     });
     
+    Route::get('/konfirmasi', [PartnerController::class, 'confirmations'])->name('confirmations');
+Route::post('/booking/{booking}/konfirmasi', [PartnerController::class, 'confirmBooking'])->name('booking.confirm');
+// Route::post('/order/{order}/konfirmasi', [PartnerController::class, 'confirmOrder'])->name('order.confirm');
+
 });
 
 /*
@@ -172,12 +179,11 @@ Route::middleware(['auth', 'role:partner,super_admin'])
 | SUPER ADMIN ONLY
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'role:super_admin'])
-    ->prefix('admin')
-    ->name('admin.')
-    ->group(function () {
-        Route::get('/dashboard', fn() => view('admin.dashboard'))->name('dashboard');
-    });
+Route::middleware(['auth', 'role:super_admin'])->prefix('super-admin')->name('superadmin.')->group(function () {
+    Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+    Route::resource('users', SuperAdminUserController::class);
+    Route::resource('partners', SuperAdminPartnerController::class);
+});
 
 // Order detail
 Route::middleware(['auth'])->prefix('order')->name('order.')->group(function () {
