@@ -15,6 +15,7 @@ class Product extends Model
         'category',
         'stock',
         'image',
+        'status',
     ];
 
     public function partner()

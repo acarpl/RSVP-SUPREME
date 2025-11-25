@@ -27,6 +27,9 @@ Route::get('/', function () {
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 Route::get('/vouchers', [VoucherController::class, 'index'])->name('vouchers.index');
+Route::get('/alat', [ProductController::class, 'alat'])->name('products.alat');
+Route::get('/makanan', [ProductController::class, 'makanan'])->name('products.makanan');
+Route::get('/merchandise', [ProductController::class, 'merchandise'])->name('products.merchandise');
 
 // Lapangan (publik)
 Route::get('/lapangan', [LapanganController::class, 'customerIndex'])->name('lapangan.index');
@@ -119,13 +122,13 @@ Route::middleware(['auth', 'role:partner,super_admin'])
     Route::post('/leave', [ProfileController::class, 'leavePartner'])->name('leave');
 
     // Produk
-    Route::prefix('products')->name('products.')->group(function () {
-        Route::get('/', [ProductController::class, 'manage'])->name('manage');
-        Route::get('/create', [ProductController::class, 'create'])->name('create');
-        Route::post('/', [ProductController::class, 'store'])->name('store');
-        Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
-        Route::put('/{product}', [ProductController::class, 'update'])->name('update');
-        Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+   Route::prefix('products')->name('products.')->group(function () {
+            Route::get('/', [ProductController::class, 'manage'])->name('manage');
+            Route::get('/create', [ProductController::class, 'create'])->name('create');
+            Route::post('/', [ProductController::class, 'store'])->name('store');
+            Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
+            Route::put('/{product}', [ProductController::class, 'update'])->name('update');
+            Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
     });
 
     // Voucher

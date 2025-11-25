@@ -12,10 +12,26 @@ class ProductController extends Controller
     // ============================
     // USER — LIST PRODUK
     // ============================
-    public function index()
+    
+
+
+     public function index(Request $request)
     {
-        $products = Product::latest()->paginate(12);
-        return view('produk.index', compact('products'));
+        // Debug: lihat apa yang dikirim
+    \Log::info('Request category:', [$request->category]);
+
+    $query = Product::query();
+
+    if ($request->filled('category')) {
+        $query->where('category', $request->category);
+    }
+
+    $products = $query->latest()->paginate(12);
+
+    // Debug: lihat jumlah hasil
+    \Log::info('Jumlah produk:', [$products->count()]);
+
+    return view('produk.index', compact('products'));
     }
 
     public function alat()
@@ -29,6 +45,11 @@ class ProductController extends Controller
         $products = Product::where('category', 'makanan')->get();
         return view('produk.makanan', compact('products'));
     }
+    public function merchandise()
+{
+    $products = Product::where('category', 'merchandise')->get();
+    return view('produk.merchandise', compact('products'));
+}
 
     // ============================
     // USER — DETAIL PRODUK
