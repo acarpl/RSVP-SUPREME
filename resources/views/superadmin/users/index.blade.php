@@ -1,52 +1,97 @@
 @extends('layouts.superadmin')
 
+@section('title', 'Kelola Pengguna')
+
+@section('breadcrumb')
+    <li class="breadcrumb-item active" aria-current="page">Pengguna</li>
+@endsection
+
 @section('content')
-<div class="container mx-auto px-4 py-6">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold">👥 Daftar Pengguna (Customer)</h1>
-        <a href="{{ route('superadmin.dashboard') }}" class="text-sm text-blue-600 hover:underline">← Kembali ke Dashboard</a>
+<div class="row mb-4">
+    <div class="col-md-6">
+        <h5 class="mb-0"><i class="fas fa-users me-2"></i> Daftar Pengguna</h5>
     </div>
-
-    @if(session('success'))
-        <div class="mb-4 p-3 bg-green-100 text-green-700 rounded">{{ session('success') }}</div>
-    @endif
-
-    <div class="overflow-x-auto bg-white rounded-lg shadow">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nama</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                @forelse($users as $user)
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3 whitespace-nowrap">{{ $user->name }}</td>
-                    <td class="px-4 py-3 whitespace-nowrap">{{ $user->email }}</td>
-                    <td class="px-4 py-3">
-                        <span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">{{ $user->role }}</span>
-                    </td>
-                    <td class="px-4 py-3 space-x-2">
-                        <a href="{{ route('superadmin.users.edit', $user) }}" class="text-blue-600 hover:underline text-sm">Edit</a>
-                        <form method="POST" action="{{ route('superadmin.users.destroy', $user) }}" class="inline">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="text-red-600 hover:underline text-sm"
-                                onclick="return confirm('Yakin hapus {{ $user->name }}?')">Hapus</button>
-                        </form>
-                    </td>
-                </tr>
-                @empty
-                <tr><td colspan="4" class="px-4 py-6 text-center text-gray-500">Belum ada pengguna.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+    <div class="col-md-6 text-md-end">
+        <a href="{{ route('superadmin.users.create') }}" class="btn btn-brand">
+            <i class="fas fa-plus me-1"></i> Tambah Pengguna
+        </a>
     </div>
+</div>
 
-    <div class="mt-4">
-        {{ $users->links() }}
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        @if($users->isEmpty())
+            <div class="text-center py-5">
+                <i class="fas fa-users-slash text-muted" style="font-size: 3rem;"></i>
+                <h5 class="mt-3 text-muted">Belum ada pengguna</h5>
+                <p class="text-muted">Pengguna akan muncul setelah mendaftar atau ditambahkan secara manual.</p>
+            </div>
+        @else
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th scope="col" style="width: 5%">#</th>
+                            <th scope="col">Nama</th>
+                            <th scope="col">Email</th>
+                            <th scope="col"><i class="fas fa-user-tag me-1"></i> Role</th>
+                            <th scope="col"><i class="fas fa-calendar me-1"></i> Terdaftar</th>
+                            <th scope="col" class="text-end">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($users as $user)
+                        <tr>
+                            <td>{{ $loop->iteration + ($users->currentPage() - 1) * $users->perPage() }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-light text-muted rounded-circle d-flex align-items-center justify-content-center me-2"
+                                         style="width: 36px; height: 36px; font-weight: 600;">
+                                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">{{ $user->name }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ $user->email }}</td>
+                            <td>
+                                @if($user->role === 'super_admin')
+                                    <span class="badge bg-danger">Super Admin</span>
+                                @elseif($user->role === 'partner')
+                                    <span class="badge bg-success">Partner</span>
+                                @else
+                                    <span class="badge bg-secondary">Customer</span>
+                                @endif
+                            </td>
+                            <td>{{ $user->created_at->format('d M Y') }}</td>
+                            <td class="text-end">
+                                <a href="{{ route('superadmin.users.edit', $user) }}" 
+                                   class="btn btn-sm btn-outline-primary me-1" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                @if($user->id !== Auth::id() && $user->role !== 'super_admin')
+                                    <form action="{{ route('superadmin.users.destroy', $user) }}" 
+                                          method="POST" class="d-inline" 
+                                          onsubmit="return confirm('Hapus pengguna {{ $user->name }}?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-3">
+                {{ $users->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection

@@ -59,4 +59,9 @@ class User extends Authenticatable
     return $this->hasOne(Partner::class);
 }
 
+public function lapangan()
+{
+    return $this->hasMany(Lapangan::class, 'partner_id');
+}
+
 }
