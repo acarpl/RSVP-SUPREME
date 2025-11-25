@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Lapangan;
+use App\Models\Product;
 
 class SuperAdminController extends Controller
 {
     public function dashboard()
-    {
-        $totalUsers = User::count();
-        $totalPartners = User::where('role', 'partner')->count();
-        $totalCustomers = User::where('role', 'customer')->count();
-
-        return view('superadmin.dashboard', compact('totalUsers', 'totalPartners', 'totalCustomers'));
-    }
+{
+    return view('superadmin.dashboard', [
+        'totalUsers' => User::count(),
+        'totalPartners' => User::where('role', 'partner')->count(),
+        'totalLapangan' => Lapangan::count(),
+        'totalProduk' => Product::count(),
+    ]);
+}
 }
