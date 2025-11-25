@@ -17,7 +17,7 @@
                 <div class="col-12">
                     <div class="card border-0 shadow-sm rounded-3">
                         <div class="card-body">
-                            <div class="d-flex flex-column flex-md-row justify-content-between">
+                            <div class="d-flex justify-content-between">
                                 <div>
                                     <h5 class="mb-1">
                                         @if($booking->alamat_pengiriman)
@@ -26,16 +26,9 @@
                                             <i class="fas fa-futbol text-success me-2"></i> Sewa Alat
                                         @endif
                                     </h5>
-                                    <p class="text-muted mb-2">
+                                    <p class="text-muted mb-0">
                                         {{ $booking->created_at->format('d M Y H:i') }}
                                     </p>
-                                    <div class="d-flex flex-wrap gap-2 mb-2">
-                                        @foreach($booking->items as $item)
-                                            <span class="badge bg-light text-dark">
-                                                {{ $item->quantity }}x {{ Str::limit($item->name, 15) }}
-                                            </span>
-                                        @endforeach
-                                    </div>
                                 </div>
                                 <div class="text-end">
                                     <div class="fw-bold text-primary fs-5">
@@ -47,12 +40,6 @@
                                         @else bg-secondary text-white @endif">
                                         {{ ucfirst($booking->status) }}
                                     </span>
-                                    <div class="mt-2">
-                                        <a href="{{ route('riwayat.show', $booking) }}" 
-                                           class="btn btn-sm btn-outline-brand">
-                                            <i class="fas fa-eye me-1"></i> Detail
-                                        </a>
-                                    </div>
                                 </div>
                             </div>
                         </div>

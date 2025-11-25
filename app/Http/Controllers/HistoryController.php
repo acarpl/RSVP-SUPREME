@@ -11,20 +11,10 @@ class HistoryController extends Controller
     public function index()
     {
         $bookings = Booking::where('user_id', Auth::id())
-                          ->with('items')
+                          ->select('id', 'created_at', 'total_harga', 'status')
                           ->latest()
                           ->paginate(10);
 
         return view('history.index', compact('bookings'));
-    }
-
-    public function show(Booking $booking)
-    {
-        if ($booking->user_id !== Auth::id()) {
-            abort(403);
-        }
-
-        $booking->load('items', 'lapangan');
-        return view('history.show', compact('booking'));
     }
 }

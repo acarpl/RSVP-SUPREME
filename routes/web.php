@@ -101,10 +101,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/', [CheckoutController::class, 'store'])->name('store');
     });
     // Riwayat
-    Route::prefix('riwayat')->name('riwayat.')->group(function () {
-        Route::get('/', [HistoryController::class, 'index'])->name('index');
-     Route::get('/{booking}', [HistoryController::class, 'show'])->name('show');
-});
+    Route::get('/riwayat', [HistoryController::class, 'index'])
+    ->name('riwayat.index');
 });
 
 /*
