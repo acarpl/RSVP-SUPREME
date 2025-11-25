@@ -27,9 +27,9 @@
             <i class="fas fa-store me-1"></i> Kelola Product
         </a>
 
-        <a href="{{ route('vouchers.index') }}" class="btn btn-brand px-4 py-2">
-            <i class="fas fa-tag me-1"></i> Kelola Voucher
-        </a>
+        <a href="{{ route('partner.vouchers.index') }}" class="btn btn-brand px-4 py-2">
+    <i class="fas fa-tag me-1"></i> Kelola Voucher
+</a>
     </div>
 
 </div>

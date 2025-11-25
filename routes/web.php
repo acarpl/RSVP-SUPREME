@@ -133,12 +133,13 @@ Route::middleware(['auth', 'role:partner,super_admin'])
 
     // Voucher
     Route::prefix('vouchers')->name('vouchers.')->group(function () {
-        Route::get('/create', [VoucherController::class, 'create'])->name('create');
-        Route::post('/', [VoucherController::class, 'store'])->name('store');
-        Route::get('/{voucher}/edit', [VoucherController::class, 'edit'])->name('edit');
-        Route::put('/{voucher}', [VoucherController::class, 'update'])->name('update');
-        Route::delete('/{voucher}', [VoucherController::class, 'destroy'])->name('destroy');
-    });
+    Route::get('/', [VoucherController::class, 'index'])->name('index');
+    Route::get('/create', [VoucherController::class, 'create'])->name('create');
+    Route::post('/', [VoucherController::class, 'store'])->name('store');
+    Route::get('/{voucher}/edit', [VoucherController::class, 'edit'])->name('edit');
+    Route::put('/{voucher}', [VoucherController::class, 'update'])->name('update');
+    Route::delete('/{voucher}', [VoucherController::class, 'destroy'])->name('destroy');
+});
 
     // Lapangan
     Route::prefix('lapangan')->name('lapangan.')->group(function () {

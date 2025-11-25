@@ -16,10 +16,7 @@ class ProductController extends Controller
 
 
      public function index(Request $request)
-    {
-        // Debug: lihat apa yang dikirim
-    \Log::info('Request category:', [$request->category]);
-
+{
     $query = Product::query();
 
     if ($request->filled('category')) {
@@ -28,11 +25,8 @@ class ProductController extends Controller
 
     $products = $query->latest()->paginate(12);
 
-    // Debug: lihat jumlah hasil
-    \Log::info('Jumlah produk:', [$products->count()]);
-
     return view('produk.index', compact('products'));
-    }
+}
 
     public function alat()
     {
