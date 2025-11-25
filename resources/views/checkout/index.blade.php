@@ -1,87 +1,176 @@
 @extends('layouts.app')
 
+@section('title', 'Checkout Keranjang')
+
 @section('content')
-<div class="container py-5">
-    <h2>Checkout</h2>
+<div class="container py-4">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ route('cart.index') }}" class="btn btn-outline-brand rounded-circle me-3">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="fw-bold text-brand mb-0">Checkout Keranjang</h1>
+    </div>
 
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
+    <div class="row g-4">
+        <!-- Form -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-shopping-cart me-2"></i> Jenis Pesanan</h5>
+                </div>
+                <div class="card-body">
+                    <form action="{{ route('checkout.store') }}" method="POST">
+                        @csrf
 
-    <form action="{{ route('checkout.store') }}" method="POST">
-        @csrf
+                        <!-- Opsi: Beli / Sewa -->
+                        <div class="mb-4">
+                            <label class="form-label fw-medium">Jenis Pesanan</label>
+                            <div class="form-check mb-2">
+                                <input type="radio" name="jenis_pesanan" id="beli_produk" value="beli_produk" class="form-check-input" checked>
+                                <label class="form-check-label" for="beli_produk">
+                                    <strong>Beli Produk</strong> (Kirim ke alamat Anda)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input type="radio" name="jenis_pesanan" id="sewa_alat" value="sewa_alat" class="form-check-input">
+                                <label class="form-check-label" for="sewa_alat">
+                                    <strong>Sewa Alat</strong> (Pakai di lapangan yang sudah dibooking)
+                                </label>
+                            </div>
+                        </div>
 
-        <div class="row">
-            <!-- Data Diri -->
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Data Pengiriman</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label">Nama Lengkap</label>
-                            <input type="text" class="form-control" value="{{ Auth::user()->name }}" disabled>
+                        <!-- Alamat (hanya muncul jika beli_produk) -->
+                        <div id="alamat_section">
+                            <div class="mb-3">
+                                <label class="form-label fw-medium">Alamat Pengiriman <span class="text-danger">*</span></label>
+                                <textarea name="alamat_pengiriman"
+                                    class="form-control @error('alamat_pengiriman') is-invalid @enderror"
+                                    rows="3"
+                                    placeholder="Contoh: Jl. Sudirman No. 123, Jakarta Pusat"
+                                    required>{{ old('alamat_pengiriman') }}</textarea>
+                                @error('alamat_pengiriman')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" value="{{ Auth::user()->email }}" disabled>
+
+                        <!-- Jadwal (hanya muncul jika sewa_alat) -->
+                        <div id="jadwal_section" style="display: none;">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Tanggal <span class="text-danger">*</span></label>
+                                    <input type="date"
+                                        name="tanggal"
+                                        class="form-control @error('tanggal') is-invalid @enderror"
+                                        value="{{ old('tanggal', \Carbon\Carbon::now()->format('Y-m-d')) }}"
+                                        min="{{ \Carbon\Carbon::now()->format('Y-m-d') }}"
+                                        required>
+                                    @error('tanggal')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-medium">Jam Mulai <span class="text-danger">*</span></label>
+                                    <select name="jam_mulai"
+                                        class="form-select @error('jam_mulai') is-invalid @enderror"
+                                        required>
+                                        <option value="">Pilih jam</option>
+                                        @for ($h = 8; $h <= 21; $h++)
+                                            @for ($m=0; $m < 60; $m +=30)
+                                            @php $time=sprintf('%02d:%02d', $h, $m); @endphp
+                                            <option value="{{ $time }}" {{ old('jam_mulai') == $time ? 'selected' : '' }}>
+                                            {{ $h }}:{{ $m == 0 ? '00' : $m }}
+                                            </option>
+                                            @endfor
+                                            @endfor
+                                    </select>
+                                    @error('jam_mulai')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-medium">Durasi <span class="text-danger">*</span></label>
+                                <select name="durasi"
+                                    class="form-select form-select-lg @error('durasi') is-invalid @enderror"
+                                    required>
+                                    <option value="">Pilih durasi</option>
+                                    @for ($i = 1; $i <= 6; $i++)
+                                        <option value="{{ $i }}" {{ old('durasi') == $i ? 'selected' : '' }}>
+                                        {{ $i }} jam
+                                        </option>
+                                        @endfor
+                                </select>
+                                @error('durasi')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Nomor HP</label>
-                            <input type="text" class="form-control" 
-                                   value="{{ Auth::user()->phone ?? 'Belum diisi' }}" 
-                                   disabled>
-                        </div>
-                    </div>
+
+                        <button type="submit" class="btn btn-brand w-100 py-3">
+                            <i class="fas fa-credit-card me-2"></i> Bayar Sekarang
+                        </button>
+                    </form>
                 </div>
             </div>
+        </div>
 
-            <!-- Alamat & Pesanan -->
-            <div class="col-md-6">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Detail Pesanan</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label class="form-label required">Alamat Lengkap</label>
-                            <textarea name="alamat" class="form-control" rows="3" placeholder="Jl. Contoh No. 123, RT/RW, Kel/Desa, Kecamatan, Kota, Provinsi, Kode Pos" required>{{ old('alamat') }}</textarea>
-                            @error('alamat')<div class="text-danger">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Catatan (Opsional)</label>
-                            <textarea name="catatan" class="form-control" rows="2" placeholder="Contoh: Kirim sore hari, dll">{{ old('catatan') }}</textarea>
-                        </div>
-                    </div>
+        <!-- Ringkasan -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-receipt me-2"></i> Ringkasan Pesanan</h5>
                 </div>
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Produk dari Keranjang ({{ count($items) }})</h6>
+                    @foreach($items as $item)
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>{{ $item['quantity'] }}x {{ $item['product']->name }}</span>
+                        <span>Rp {{ number_format($item['subtotal']) }}</span>
+                    </div>
+                    @endforeach
 
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Rincian Biaya</h5>
+                    <hr>
+
+                    <div class="d-flex justify-content-between fw-bold fs-5">
+                        <span>Total:</span>
+                        <span class="text-primary">Rp {{ number_format($total) }}</span>
                     </div>
-                    <div class="card-body">
-                        @foreach($items as $item)
-                            <div class="d-flex justify-content-between small">
-                                <span>{{ $item['product']->name }} ×{{ $item['quantity'] }}</span>
-                                <span>Rp {{ number_format($item['subtotal'], 0, ',', '.') }}</span>
-                            </div>
-                        @endforeach
-                        <hr>
-                        <div class="d-flex justify-content-between">
-                            <strong>Total</strong>
-                            <strong>Rp {{ number_format($total, 0, ',', '.') }}</strong>
-                        </div>
-                    </div>
-                    <div class="card-footer text-end">
-                        <a href="{{ route('cart.index') }}" class="btn btn-secondary">← Kembali</a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-credit-card"></i> Bayar Sekarang
-                        </button>
+
+                    <div class="alert alert-light small mt-3 p-2">
+                        <i class="fas fa-shield-alt text-success me-1"></i>
+                        Pembayaran aman via Midtrans
                     </div>
                 </div>
             </div>
         </div>
-    </form>
+    </div>
 </div>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const jenisPesanan = document.querySelectorAll('input[name="jenis_pesanan"]');
+        const alamatSection = document.getElementById('alamat_section');
+        const jadwalSection = document.getElementById('jadwal_section');
+
+        // Toggle section berdasarkan pilihan
+        jenisPesanan.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'beli_produk') {
+                    alamatSection.style.display = 'block';
+                    jadwalSection.style.display = 'none';
+                } else if (this.value === 'sewa_alat') {
+                    alamatSection.style.display = 'none';
+                    jadwalSection.style.display = 'block';
+                }
+            });
+        });
+
+        // Trigger change saat load
+        document.querySelector('input[value="beli_produk"]').dispatchEvent(new Event('change'));
+    });
+</script>
+@endpush
 @endsection

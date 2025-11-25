@@ -1,16 +1,27 @@
 @extends('layouts.app')
 
+@section('title', 'Keranjang Belanja')
+
 @section('content')
 <div class="container py-5">
-    <h2>Keranjang Belanja</h2>
+    <div class="d-flex align-items-center mb-4">
+        <a href="{{ url()->previous() }}" class="btn btn-outline-brand rounded-circle me-3">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="fw-bold text-brand mb-0">Keranjang Belanja</h1>
+    </div>
 
     @if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
     @endif
 
     @if(empty($items))
     <div class="text-center py-5">
-        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+        <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+            style="width: 80px; height: 80px;">
             <i class="fas fa-shopping-cart fa-2x text-muted"></i>
         </div>
         <h3 class="fw-bold text-muted mb-2">Keranjang Kosong</h3>
@@ -26,7 +37,7 @@
                 <div class="card-header bg-white">
                     <h5 class="mb-0 fw-bold">
                         <i class="fas fa-list me-2"></i>
-                        Daftar Produk ({{ count($items) }} item)
+                        Produk ({{ count($items) }} item)
                     </h5>
                 </div>
                 <div class="card-body p-0">
@@ -47,7 +58,8 @@
                                     <div class="d-flex align-items-center">
                                         @if($item['product']->gambar)
                                         <img src="{{ asset('storage/' . $item['product']->gambar) }}"
-                                            class="rounded me-3" width="50" height="50" alt="{{ $item['product']->name }}">
+                                            class="rounded me-3" width="50" height="50"
+                                            alt="{{ $item['product']->name }}">
                                         @else
                                         <div class="bg-light border rounded me-3 d-flex align-items-center justify-content-center"
                                             style="width: 50px; height: 50px;">
@@ -77,7 +89,6 @@
                                             style="width: 70px;"
                                             onchange="this.form.submit()">
                                     </form>
-
                                     @else
                                     <span class="badge bg-danger">Habis</span>
                                     @endif
@@ -88,7 +99,10 @@
                                 <td>
                                     <form action="{{ route('cart.remove', $item['product']->id) }}" method="POST" class="d-inline">
                                         @csrf
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
+                                        <button type="submit"
+                                            class="btn btn-sm btn-outline-danger"
+                                            title="Hapus"
+                                            onclick="return confirm('Hapus {{ addslashes($item['product']->name) }} dari keranjang?')">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                     </form>
@@ -112,15 +126,24 @@
                 <div class="card-header bg-white">
                     <h5 class="mb-0 fw-bold">
                         <i class="fas fa-receipt me-2"></i>
-                        Rincian Pesanan
+                        Ringkasan Pesanan
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
+                        <span>Total Produk:</span>
+                        <span>{{ count($items) }} item</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span class="fw-bold">Rp {{ number_format($total) }}</span>
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between fw-bold fs-5 mb-3">
                         <span>Total:</span>
-                        <span class="fw-bold text-primary fs-4">
-                            Rp {{ number_format($total) }}
-                        </span>
+                        <span class="text-primary">Rp {{ number_format($total) }}</span>
                     </div>
 
                     <div class="alert alert-light small p-2 mb-3">
@@ -129,10 +152,12 @@
                     </div>
 
                     <div class="d-grid gap-2">
-                        <a href="{{ route('booking.from-cart') }}" class="btn btn-brand btn-lg">
+                        <!-- ✅ SESUAI STRUKTUR ANDA: checkout dari keranjang -->
+                        <a href="{{ route('checkout.index') }}" class="btn btn-brand btn-lg">
                             <i class="fas fa-shopping-cart me-2"></i>
-                            Lanjut ke Booking
+                            Lanjut ke Checkout
                         </a>
+
                         <a href="{{ route('products.index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-plus me-1"></i> Tambah Produk
                         </a>

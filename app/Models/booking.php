@@ -34,4 +34,8 @@ class Booking extends Model
     {
         return $this->belongsTo(Lapangan::class);
     }
+    public function items()
+{
+    return $this->hasMany(BookingItem::class);
+}
 }
