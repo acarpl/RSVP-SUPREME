@@ -638,6 +638,7 @@ class ComposerStaticInit2a05d459278646e944ab4e1dc01bab7f
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
         'App\\Http\\Controllers\\FieldController' => __DIR__ . '/../..' . '/app/Http/Controllers/FieldController.php',
         'App\\Http\\Controllers\\FieldTypeController' => __DIR__ . '/../..' . '/app/Http/Controllers/FieldTypeController.php',
+        'App\\Http\\Controllers\\HistoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/HistoryController.php',
         'App\\Http\\Controllers\\LapanganController' => __DIR__ . '/../..' . '/app/Http/Controllers/LapanganController.php',
         'App\\Http\\Controllers\\OrderController' => __DIR__ . '/../..' . '/app/Http/Controllers/OrderController.php',
         'App\\Http\\Controllers\\OrderItemController' => __DIR__ . '/../..' . '/app/Http/Controllers/OrderItemController.php',

@@ -22,6 +22,7 @@ return array(
     'App\\Http\\Controllers\\Controller' => $baseDir . '/app/Http/Controllers/Controller.php',
     'App\\Http\\Controllers\\FieldController' => $baseDir . '/app/Http/Controllers/FieldController.php',
     'App\\Http\\Controllers\\FieldTypeController' => $baseDir . '/app/Http/Controllers/FieldTypeController.php',
+    'App\\Http\\Controllers\\HistoryController' => $baseDir . '/app/Http/Controllers/HistoryController.php',
     'App\\Http\\Controllers\\LapanganController' => $baseDir . '/app/Http/Controllers/LapanganController.php',
     'App\\Http\\Controllers\\OrderController' => $baseDir . '/app/Http/Controllers/OrderController.php',
     'App\\Http\\Controllers\\OrderItemController' => $baseDir . '/app/Http/Controllers/OrderItemController.php',

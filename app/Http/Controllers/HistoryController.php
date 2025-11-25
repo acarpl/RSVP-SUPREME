@@ -8,27 +8,12 @@ use Illuminate\Support\Facades\Auth;
 
 class HistoryController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $query = Booking::where('user_id', Auth::id())
-                        ->with(['items.product', 'lapangan'])
-                        ->latest();
-
-        // Filter berdasarkan jenis pesanan
-        if ($request->filled('jenis')) {
-            if ($request->jenis === 'beli_produk') {
-                $query->whereNotNull('alamat_pengiriman');
-            } else {
-                $query->whereNull('alamat_pengiriman');
-            }
-        }
-
-        // Filter berdasarkan status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $bookings = $query->paginate(8);
+        $bookings = Booking::where('user_id', Auth::id())
+                          ->with('items')
+                          ->latest()
+                          ->paginate(10);
 
         return view('history.index', compact('bookings'));
     }
@@ -39,6 +24,7 @@ class HistoryController extends Controller
             abort(403);
         }
 
+        $booking->load('items', 'lapangan');
         return view('history.show', compact('booking'));
     }
 }

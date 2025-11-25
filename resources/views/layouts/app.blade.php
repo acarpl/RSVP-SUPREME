@@ -293,6 +293,11 @@
                                         <i class="fas fa-user me-2"></i> Profil Saya
                                     </a>
                                 </li>
+                                <li>
+    <a class="dropdown-item" href="{{ route('riwayat.index') }}">
+        <i class="fas fa-history me-2"></i> Riwayat Pesanan
+    </a>
+</li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     

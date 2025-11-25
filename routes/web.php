@@ -9,6 +9,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\HistoryController;
 use App\Models\Lapangan;
 
 /*
@@ -99,6 +100,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [CheckoutController::class, 'index'])->name('index');
         Route::post('/', [CheckoutController::class, 'store'])->name('store');
     });
+    // Riwayat
+    Route::prefix('riwayat')->name('riwayat.')->group(function () {
+        Route::get('/', [HistoryController::class, 'index'])->name('index');
+     Route::get('/{booking}', [HistoryController::class, 'show'])->name('show');
+});
 });
 
 /*
