@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container py-5" x-data="productCart()">
+<div class="container py-5" x-data="productCart()" id="product-list">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5">
         <div>
             <h1 class="fw-bold text-brand mb-2">Produk</h1>
@@ -43,7 +43,7 @@
                          style="transition: box-shadow 0.3s ease;">
                         <!-- Gambar Produk -->
                         <div class="ratio ratio-16x9 bg-light">
-                            <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://placehold.co/600x400/e2e8f0/94a3b8?text=No+Image' }}"
+                            <img src="{{ $product->image ? asset('storage/' . $product->image) : 'https://placehold.co/600x400/e2e8f0/94a3b8?text=No+Image  ' }}"
                                  class="object-fit-cover w-100 h-100"
                                  alt="{{ $product->name }}"
                                  loading="lazy">
@@ -139,9 +139,10 @@
             @endforeach
         </div>
 
+        <!-- ✅ PAGINATION FIX: TETAP DI POSISI & SCROLL SMOOTH -->
         @if ($products->hasPages())
-            <div class="mt-5">
-                {{ $products->links() }}
+            <div class="mt-5" id="pagination-container">
+                {{ $products->appends(request()->query())->fragment('product-list')->links() }}
             </div>
         @endif
 
@@ -174,10 +175,15 @@
         box-shadow: 0 0.75rem 1.5rem rgba(216, 92, 92, 0.15) !important;
     }
     .ratio-16x9 {
-        --bs-aspect-ratio: 62.5%; /* 16:10 → lebih tinggi dari 16:9 untuk tampilan produk */
+        --bs-aspect-ratio: 62.5 %; /* 16:10 → lebih tinggi dari 16:9 untuk tampilan produk */
     }
     .object-fit-cover {
         object-fit: cover;
+    }
+
+    /* ✅ SCROLL SMOOTH UNTUK ANCHOR */
+    html {
+        scroll-behavior: smooth;
     }
 </style>
 
