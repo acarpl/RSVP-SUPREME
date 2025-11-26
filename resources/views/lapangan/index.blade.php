@@ -20,23 +20,15 @@
     @endif
 
     <!-- Search & Count -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-        <h2 class="h4 fw-bold mb-0">
-            <i class="fas fa-map-marker-alt me-2 text-primary"></i>
-            {{ $lapangans->total() }} Lapangan Tersedia
-        </h2>
-        <form method="GET" class="d-flex w-md-auto">
-            <input type="text" 
-                   name="search" 
-                   class="form-control form-control-sm me-2"
-                   placeholder="Cari lapangan, lokasi, atau partner..."
-                   value="{{ request('search') }}"
-                   style="min-width: 200px;">
-            <button type="submit" class="btn btn-outline-brand btn-sm">
-                <i class="fas fa-search"></i>
-            </button>
-        </form>
-    </div>
+    <div class="d-flex justify-content-end mb-4">
+    <form action="{{ route('lapangan.index') }}" method="GET" class="d-flex gap-2">
+        <input type="text" name="search" class="form-control" placeholder="Cari lapangan..." 
+               value="{{ request('search') }}" style="max-width: 300px;">
+        <button type="submit" class="btn btn-outline-brand">
+            <i class="fas fa-search"></i>
+        </button>
+    </form>
+</div>
 
     <!-- Grid Lapangan -->
     @if($lapangans->count())

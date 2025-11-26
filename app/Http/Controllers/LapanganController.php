@@ -11,13 +11,24 @@ class LapanganController extends Controller
 {
     // =============== CUSTOMER/GUEST ===============
 
-    public function customerIndex()
-    {
-        $lapangans = Lapangan::where('status', 'aktif')
-                             ->latest()
-                             ->paginate(9);
-        return view('lapangan.index', compact('lapangans'));
+    public function customerIndex(Request $request)
+{
+    $query = Lapangan::where('status', 'aktif');
+
+    // 🔍 Filter berdasarkan search
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function ($q) use ($search) {
+            $q->where('nama', 'like', "%{$search}%")
+              ->orWhere('alamat', 'like', "%{$search}%");
+        });
     }
+
+    $lapangans = $query->latest()->paginate(6);
+
+    return view('lapangan.index', compact('lapangans'))
+           ->with('search', $request->search ?? '');
+}
 
     public function customerShow(Lapangan $lapangan)
     {
