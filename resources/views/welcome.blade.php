@@ -142,7 +142,7 @@
                     <div class="col-12">
                         <div class="d-flex align-items-center">
                             <img 
-                                src="https://via.placeholder.com/300x300/6a11cb/ffffff?text=RF" 
+                                src="https://github.com/acarpl/RSVP-SUPREME/blob/main/WhatsApp%20Image%202025-11-22%20at%2013.43.02_395e63db.jpg?raw=true" 
                                 alt="I'Zaz Ramdhany"
                                 class="rounded-circle me-3"
                                 style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #f8f9fa;">
@@ -157,7 +157,7 @@
                     <div class="col-12">
                         <div class="d-flex align-items-center">
                             <img 
-                                src="https://via.placeholder.com/300x300/2575fc/ffffff?text=AL" 
+                                src="https://github.com/acarpl/RSVP-SUPREME/blob/main/WhatsApp%20Image%202025-11-22%20at%2013.43.09_e2479526.jpg?raw=true" 
                                 alt="Rasya"
                                 class="rounded-circle me-3"
                                 style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #f8f9fa;">
@@ -172,7 +172,7 @@
                     <div class="col-12">
                         <div class="d-flex align-items-center">
                             <img 
-                                src="https://via.placeholder.com/300x300/ff6b6b/ffffff?text=NS" 
+                                src="https://github.com/acarpl/RSVP-SUPREME/blob/main/WhatsApp%20Image%202025-11-22%20at%2013.43.10_9bd4d4c6.jpg?raw=true" 
                                 alt="ZIdane"
                                 class="rounded-circle me-3"
                                 style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #f8f9fa;">
