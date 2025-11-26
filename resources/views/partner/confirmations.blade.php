@@ -1,107 +1,192 @@
 @extends('layouts.app')
 
-@section('title', 'Konfirmasi Pembayaran')
+@section('title', 'Konfirmasi Booking')
+
+@push('styles')
+<style>
+    .status-badge {
+        font-size: 0.85em;
+        padding: 0.35em 0.6em;
+        border-radius: 0.3rem;
+    }
+    .status-badge.menunggu_konfirmasi { background-color: #fff3cd; color: #856404; }
+    .status-badge.dikonfirmasi { background-color: #d4edda; color: #155724; }
+    .status-badge.ditolak { background-color: #f8d7da; color: #721c24; }
+    .dropdown-status-form { display: inline; }
+</style>
+@endpush
 
 @section('content')
 <div class="container py-4">
-    <h1 class="fw-bold text-brand mb-4">Konfirmasi Pembayaran</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold text-brand">
+            <i class="fas fa-check-circle me-2"></i> Konfirmasi Booking
+        </h1>
+        <span class="badge bg-secondary">{{ $items->count() }} booking</span>
+    </div>
 
-    <!-- Booking Menunggu Konfirmasi -->
-    <div class="card border-0 shadow-sm rounded-3 mb-4">
-        <div class="card-header bg-white">
-            <h5 class="mb-0 fw-bold"><i class="fas fa-futbol text-info me-2"></i> Booking Lapangan</h5>
+    <!-- Filter Status -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <form method="GET" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Filter Status</label>
+                    <select name="status" class="form-select" onchange="this.form.submit()">
+                        @foreach($statusOptions as $value => $label)
+                            <option value="{{ $value }}" {{ request('status') == $value ? 'selected' : '' }}>
+                                {{ $label }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-filter me-1"></i> Terapkan
+                    </button>
+                </div>
+                <div class="col-md-7 text-end">
+                    <a href="{{ route('partner.confirmations') }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-sync me-1"></i> Reset
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Daftar Booking -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="fas fa-futbol me-2"></i> Daftar Booking
+            </h5>
+            <small class="text-muted">Hanya booking dengan status <strong>Dibayar</strong></small>
         </div>
         <div class="card-body">
-            @if($bookings->isEmpty())
-                <p class="text-muted">Tidak ada booking menunggu konfirmasi.</p>
+            @if($items->isEmpty())
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Tidak ada booking ditemukan.</h5>
+                    <p class="text-muted">
+                        @if($statusFilter)
+                            Tidak ada booking dengan status <strong>{{ $statusOptions[$statusFilter] ?? $statusFilter }}</strong>.
+                        @else
+                            Belum ada customer yang booking & bayar.
+                        @endif
+                    </p>
+                    <a href="{{ route('partner.lapangan.index') }}" class="btn btn-brand btn-sm">
+                        <i class="fas fa-futbol me-1"></i> Kelola Lapangan Anda
+                    </a>
+                </div>
             @else
                 <div class="table-responsive">
-                    <table class="table">
-                        <thead>
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
                             <tr>
-                                <th>ID</th>
+                                <th>#</th>
                                 <th>Pelanggan</th>
                                 <th>Lapangan</th>
-                                <th>Tanggal</th>
+                                <th>Tanggal & Waktu</th>
                                 <th>Total</th>
+                                <th>Status</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($bookings as $booking)
-                            <tr>
-                                <td>#BK-{{ $booking->id }}</td>
-                                <td>{{ $booking->user->name }}</td>
-                                <td>{{ $booking->lapangan->nama }}</td>
-                                <td>{{ $booking->tanggal->format('d M Y') }}<br>
-                                    {{ $booking->jam_mulai }} - {{ $booking->jam_selesai }}
-                                </td>
-                                <td class="fw-bold">Rp {{ number_format($booking->total_harga) }}</td>
+                            @foreach($items as $item)
+                            <tr id="bk{{ $item['id'] }}">
+                                <td><span class="badge bg-secondary">{{ $item['reference'] }}</span></td>
+                                <td>{{ $item['customer'] }}</td>
+                                <td>{{ $item['item'] }}</td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-success" 
-                                            data-bs-toggle="modal" data-bs-target="#confirmModal{{ $booking->id }}">
-                                        <i class="fas fa-check me-1"></i> Konfirmasi
-                                    </button>
+                                    {{ \Carbon\Carbon::parse($item['date'])->format('d M Y') }}<br>
+                                    <small class="text-muted">{{ $item['time'] }}</small>
+                                </td>
+                                <td class="fw-bold text-success">Rp {{ number_format($item['total']) }}</td>
+                                <td>
+                                    <span class="status-badge {{ $item['status'] }}">
+                                        @if($item['status'] === 'menunggu_konfirmasi') ⏳ Menunggu
+                                        @elseif($item['status'] === 'dikonfirmasi') ✅ Dikonfirmasi
+                                        @elseif($item['status'] === 'ditolak') ❌ Ditolak
+                                        @endif
+                                    </span>
+                                    @if($item['catatan'] !== '-')
+                                        <br><small class="text-muted">{{ Str::limit($item['catatan'], 30) }}</small>
+                                    @endif
+                                </td>
+                                <td>
+                                    @if($item['status'] === 'menunggu_konfirmasi')
+                                        <!-- Dropdown Status -->
+                                        <form 
+                                            action="{{ route('partner.confirmations.update-status') }}" 
+                                            method="POST" 
+                                            class="dropdown-status-form"
+                                        >
+                                            @csrf
+                                            <input type="hidden" name="type" value="booking">
+                                            <input type="hidden" name="id" value="{{ $item['id'] }}">
+
+                                            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                <option value="menunggu_konfirmasi" selected>⏳ Menunggu</option>
+                                                <option value="dikonfirmasi">✅ Dikonfirmasi</option>
+                                                <option value="ditolak">❌ Ditolak</option>
+                                            </select>
+
+                                            <input 
+                                                type="text" 
+                                                name="catatan" 
+                                                class="form-control form-control-sm mt-1" 
+                                                placeholder="Catatan (opsional)"
+                                                maxlength="100"
+                                            >
+                                        </form>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
                                 </td>
                             </tr>
-
-                            <!-- Modal Konfirmasi -->
-                            <div class="modal fade" id="confirmModal{{ $booking->id }}" tabindex="-1">
-                                <div class="modal-dialog">
-                                    <form action="{{ route('partner.booking.confirm', $booking) }}" method="POST">
-                                        @csrf
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Konfirmasi Booking #{{ $booking->id }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="mb-3">
-                                                    <label class="form-label">Status</label>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="radio" name="status" value="dikonfirmasi" id="confirm-{{ $booking->id }}" checked>
-                                                        <label class="form-check-label" for="confirm-{{ $booking->id }}">
-                                                            <i class="fas fa-check text-success me-1"></i> Disetujui
-                                                        </label>
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="radio" name="status" value="ditolak" id="reject-{{ $booking->id }}">
-                                                        <label class="form-check-label" for="reject-{{ $booking->id }}">
-                                                            <i class="fas fa-times text-danger me-1"></i> Ditunda/Ditolak
-                                                        </label>
-                                                    </div>
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label class="form-label">Catatan (Opsional)</label>
-                                                    <textarea name="catatan" class="form-control" rows="3" placeholder="Alasan penolakan atau catatan khusus..."></textarea>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="fas fa-paper-plane me-1"></i> Kirim Konfirmasi
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
             @endif
         </div>
     </div>
 
-    <!-- Orders (Opsional) -->
-    {{-- 
-    <div class="card border-0 shadow-sm rounded-3">
-        <div class="card-header bg-white">
-            <h5 class="mb-0 fw-bold"><i class="fas fa-box text-primary me-2"></i> Pesanan Produk</h5>
+    <!-- Tips -->
+    <div class="alert alert-info border-0 rounded-3 mt-4">
+        <div class="d-flex">
+            <div class="flex-shrink-0 me-3 mt-1">
+                <i class="fas fa-lightbulb text-info fa-lg"></i>
+            </div>
+            <div>
+                <h6 class="fw-bold mb-1">Tips Konfirmasi Booking</h6>
+                <ul class="mb-0 small">
+                    <li><strong>Konfirmasi dalam 1 jam</strong> setelah pembayaran untuk rating tinggi</li>
+                    <li>Berikan catatan jelas jika ditolak (misal: "Lapangan sedang maintenance")</li>
+                    <li>Booking yang dikonfirmasi akan muncul di jadwal lapangan Anda</li>
+                </ul>
+            </div>
         </div>
-        <!-- ... sama seperti booking ... -->
     </div>
-    --}}
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-submit saat ganti status
+    document.querySelectorAll('select[name="status"]').forEach(select => {
+        select.addEventListener('change', function() {
+            this.form.submit();
+        });
+    });
+});
+</script>
+@endpush

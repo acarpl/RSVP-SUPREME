@@ -28,7 +28,7 @@ return new class extends Migration
                 'dibayar',
                 'dibatalkan',
                 'kadaluarsa'
-            ])->default('menunggu_pembayaran');
+            ])->default('dibayar');
             $table->string('order_id')->nullable()->unique();
             $table->string('snap_token')->nullable();
             $table->timestamps();

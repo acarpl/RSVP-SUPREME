@@ -12,8 +12,8 @@
     <div class="col-md-6 col-lg-3">
         <div class="card stat-card border-0">
             <div class="card-body d-flex">
-                <div class="stat-icon bg-primary">
-                    <i class="fas fa-users"></i>
+                <div class="stat-icon bg-success">
+                    <i class="fas fa-people-group"></i>
                 </div>
                 <div class="ms-3">
                     <div class="stat-value">{{ $totalUsers }}</div>
@@ -27,8 +27,8 @@
     <div class="col-md-6 col-lg-3">
         <div class="card stat-card border-0">
             <div class="card-body d-flex">
-                <div class="stat-icon bg-success">
-                    <i class="fas fa-building"></i>
+                <div class="stat-icon bg-warning">
+                    <i class="fas fa-handshake"></i>
                 </div>
                 <div class="ms-3">
                     <div class="stat-value">{{ $totalPartners }}</div>
@@ -42,7 +42,7 @@
     <div class="col-md-6 col-lg-3">
         <div class="card stat-card border-0">
             <div class="card-body d-flex">
-                <div class="stat-icon bg-warning">
+                <div class="stat-icon bg-brand">
                     <i class="fas fa-futbol"></i>
                 </div>
                 <div class="ms-3">
@@ -57,8 +57,8 @@
     <div class="col-md-6 col-lg-3">
         <div class="card stat-card border-0">
             <div class="card-body d-flex">
-                <div class="stat-icon bg-danger">
-                    <i class="fas fa-box-open"></i>
+                <div class="stat-icon bg-info">
+                    <i class="fas fa-boxes-stacked"></i>
                 </div>
                 <div class="ms-3">
                     <div class="stat-value">{{ $totalProduk }}</div>
@@ -73,10 +73,13 @@
     <div class="col-12">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i> Aktivitas Terbaru</h5>
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i> Aktivitas Terbaru</h5>
             </div>
             <div class="card-body">
-                <p class="text-muted">Fitur riwayat aktivitas akan dikembangkan di tahap berikutnya.</p>
+                <p class="text-muted">
+                    <i class="fas fa-info-circle me-1 text-info"></i>
+                    Fitur riwayat aktivitas akan dikembangkan di tahap berikutnya.
+                </p>
             </div>
         </div>
     </div>

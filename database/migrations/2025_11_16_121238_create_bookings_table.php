@@ -20,7 +20,7 @@ return new class extends Migration
         $table->time('jam_selesai');
         $table->integer('durasi');
         $table->decimal('total_harga', 12, 2);
-        $table->enum('status', ['menunggu', 'dikonfirmasi', 'selesai', 'dibatalkan'])->default('menunggu');
+        $table->enum('status', ['menunggu', 'dikonfirmasi', 'selesai', 'dibatalkan'])->default('dikonfirmasi');
         $table->timestamps();
     });
 }

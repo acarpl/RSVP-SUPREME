@@ -140,6 +140,8 @@ Route::middleware(['auth', 'role:partner,super_admin'])
     Route::post('/booking/{booking}/konfirmasi', [PartnerController::class, 'confirmBooking'])->name('booking.confirm');
     Route::post('/order/{order}/konfirmasi', [PartnerController::class, 'confirmOrder'])->name('order.confirm');
     Route::post('/leave', [ProfileController::class, 'leavePartner'])->name('leave');
+    Route::get('/confirmations', [PartnerController::class, 'confirmations'])->name('confirmations');
+    Route::post('/confirmations/update-status', [PartnerController::class, 'updateStatus'])->name('confirmations.update-status');
 
     // Produk
    Route::prefix('products')->name('products.')->group(function () {
@@ -186,6 +188,10 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('super-admin')->name('su
     Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
     Route::resource('users', SuperAdminUserController::class);
     Route::resource('partners', SuperAdminPartnerController::class);
+    Route::post('/partners/{user}/suspend', [SuperAdminPartnerController::class, 'suspend'])
+          ->name('partners.suspend');
+    Route::post('/partners/{user}/unsuspend', [SuperAdminPartnerController::class, 'unsuspend'])
+          ->name('partners.unsuspend');
 });
 
 // Order detail

@@ -23,7 +23,7 @@ class SuperAdminPartnerController extends Controller
         return view('superadmin.partners.show', compact('partner', 'lapangan'));
     }
 
-    public function suspend(User $partner)
+    public function destroy(User $partner)
     {
         if ($partner->role !== 'partner') abort(403);
         $partner->update(['role' => 'customer']);

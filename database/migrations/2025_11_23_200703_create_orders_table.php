@@ -17,7 +17,7 @@ return new class extends Migration
     $table->string('order_number')->unique(); // SPORTY-ORD-20251124-001
     $table->string('alamat');
     $table->string('catatan')->nullable();
-    $table->string('status')->default('menunggu_pembayaran'); // menunggu_pembayaran, dibayar, dikirim, selesai, dibatalkan
+    $table->string('status')->default('dibayar'); // menunggu_pembayaran, dibayar, dikirim, selesai, dibatalkan
     $table->string('payment_method')->default('midtrans');
     $table->string('payment_status')->default('pending'); // pending, settlement, cancel, expire
     $table->bigInteger('total');

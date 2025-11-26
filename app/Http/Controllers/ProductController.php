@@ -58,7 +58,7 @@ class ProductController extends Controller
     // ============================
     public function manage()
     {
-        $products = Product::where('partner_id', Auth::id()) // 🔥 FIX → pakai Auth::id()
+        $products = Product::where('partner_id', Auth::id())
                             ->latest()
                             ->get();
 
@@ -87,7 +87,7 @@ class ProductController extends Controller
         $imagePath = $request->file('image')?->store('products', 'public');
 
         Product::create([
-            'partner_id' => Auth::id(), // 🔥 FIX
+            'partner_id' => Auth::id(), 
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
@@ -108,7 +108,6 @@ class ProductController extends Controller
         return view('produk.edit', compact('product'));
     }
 
-    // Update produk
     public function update(Request $request, Product $product)
     {
         $this->authorizeProduct($product);
@@ -159,7 +158,7 @@ class ProductController extends Controller
     // ============================
     private function authorizeProduct(Product $product)
     {
-        if ($product->partner_id !== Auth::id()) { // 🔥 FIX
+        if ($product->partner_id !== Auth::id()) { 
             abort(403);
         }
     }

@@ -40,4 +40,10 @@ public function canBeConfirmedByPartner($partnerId)
         return $item->product->partner_id == $partnerId;
     }) && $this->status === 'dibayar' && $this->partner_status === 'menunggu_konfirmasi';
 }
+
+public function confirmations()
+{
+    return $this->hasMany(BookingConfirmation::class, 'order_id');
+}
+
 }

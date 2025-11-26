@@ -17,20 +17,30 @@
 
     <style>
         :root {
-            --brand: #D85C5C;
-            --brand-dark: #c24a4a;
-            --sidebar-bg: #2d3748;
-            --sidebar-text: #e2e8f0;
-            --sidebar-hover: #4a5568;
-            --sidebar-active: #4299e1;
+            --brand: #D85C5C;           
+            --brand-light: #fde8e8;
+            --brand-hover: #c24a4a;
+            --brand-dark: #a63c3c;
+
+            --sidebar-bg: #2D3748;
+            --sidebar-text: #E2E8F0;
+            --sidebar-hover: #4A5568;
+            --sidebar-active: var(--brand);   
+
+            --success: #48BB78;         
+            --success-light: #e8f7ee;
+            --warning: #F6AD55;        
+            --warning-light: #fff8e6;
+            --danger: #E53E3E;
+            --danger-light: #ffe9e9;
+
+            --card-border: #EDF2F7;
         }
 
         body {
             font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #f8fafc;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
+            background-color: #F9FAFB;
+            color: #2D3748;
         }
 
         /* Sidebar */
@@ -42,22 +52,23 @@
             width: 260px;
             z-index: 1020;
             overflow-y: auto;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
         .admin-sidebar .brand-logo {
-            background-color: var(--brand);
+            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
             color: white;
             padding: 1.25rem 1.5rem;
             font-weight: 700;
-            font-size: 1.25rem;
+            font-size: 1.3rem;
             display: flex;
             align-items: center;
+            letter-spacing: -0.5px;
         }
 
         .admin-sidebar .brand-logo i {
             margin-right: 0.75rem;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
         }
 
         .admin-sidebar .nav-link {
@@ -67,7 +78,7 @@
             align-items: center;
             font-weight: 500;
             border-radius: 0;
-            transition: background-color 0.2s, color 0.2s;
+            transition: all 0.25s ease;
         }
 
         .admin-sidebar .nav-link:hover {
@@ -78,24 +89,27 @@
         .admin-sidebar .nav-link.active {
             background-color: var(--brand);
             color: white;
+            border-left: 4px solid white;
+            position: relative;
         }
 
         .admin-sidebar .nav-link i {
             width: 28px;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             margin-right: 0.85rem;
             text-align: center;
         }
 
         .admin-sidebar .nav-divider {
-            margin: 0.5rem 1rem;
-            border-color: #4a5568;
+            margin: 0.75rem 1rem;
+            border-color: #4A5568;
         }
 
         /* Main Content */
         .admin-main {
             margin-left: 260px;
-            padding: 1.5rem;
+            padding: 1.75rem;
+            transition: margin-left 0.3s ease;
         }
 
         .admin-header {
@@ -107,53 +121,117 @@
 
         .admin-header h1 {
             font-weight: 700;
-            color: #1a202c;
-            font-size: 1.75rem;
+            color: #1A202C;
+            font-size: 1.875rem;
         }
 
         .admin-breadcrumb {
             background-color: white;
-            padding: 0.75rem 1.25rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-            font-size: 0.9rem;
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            font-size: 0.95rem;
+            border: 1px solid var(--card-border);
+        }
+
+        .admin-breadcrumb .breadcrumb-item a {
+            color: var(--brand);
+            text-decoration: none;
+        }
+
+        .admin-breadcrumb .breadcrumb-item.active {
+            color: #718096;
         }
 
         /* Stats Cards */
         .stat-card {
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: transform 0.3s ease;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--card-border);
+            overflow: hidden;
         }
 
         .stat-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-4px);
+            box-shadow: 0 6px 20px rgba(216, 92, 92, 0.15);
         }
 
         .stat-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 12px;
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
         }
 
-        .stat-icon.bg-primary { background-color: #e3f2fd; color: #1976d2; }
-        .stat-icon.bg-success { background-color: #e8f5e9; color: #2e7d32; }
-        .stat-icon.bg-warning { background-color: #fff8e1; color: #f57c00; }
-        .stat-icon.bg-danger { background-color: #ffebee; color: #c62828; }
+        .stat-icon.bg-brand { 
+            background-color: var(--brand-light); 
+            color: var(--brand); 
+        }
+        .stat-icon.bg-success { 
+            background-color: var(--success-light); 
+            color: var(--success); 
+        }
+        .stat-icon.bg-warning { 
+            background-color: var(--warning-light); 
+            color: var(--warning); 
+        }
+        .stat-icon.bg-danger { 
+            background-color: var(--danger-light); 
+            color: var(--danger); 
+        }
 
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
-            color: #1a202c;
+            color: #1A202C;
         }
 
         .stat-label {
             color: #718096;
-            font-weight: 500;
+            font-weight: 600;
+        }
+
+        /* Buttons */
+        .btn-primary,
+        .btn-outline-primary:hover:not(:disabled):not(.disabled) {
+            background-color: var(--brand);
+            border-color: var(--brand);
+        }
+        .btn-primary:hover:not(:disabled):not(.disabled) {
+            background-color: var(--brand-hover);
+            border-color: var(--brand-hover);
+        }
+        .btn-outline-primary {
+            color: var(--brand);
+            border-color: var(--brand);
+        }
+
+        /* Alerts */
+        .alert-success {
+            background-color: var(--success-light);
+            border-color: var(--success);
+            color: #2F855A;
+        }
+        .alert-danger {
+            background-color: var(--danger-light);
+            border-color: var(--danger);
+            color: #C53030;
+        }
+
+        /* Table */
+        .table th {
+            font-weight: 600;
+            color: #4A5568;
+            background-color: #F8FAFC;
+            border-bottom: 2px solid #E2E8F0;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: #F9FAFB;
         }
 
         /* Responsive */
@@ -169,20 +247,10 @@
                 top: 0;
                 left: 0;
                 transition: width 0.3s ease;
+                z-index: 1030;
             }
             .admin-main { margin-left: 0; }
             .admin-sidebar.show { width: 260px; }
-        }
-
-        /* Table */
-        .table th {
-            font-weight: 600;
-            color: #4a5568;
-            background-color: #f8fafc;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: #f1f5f9;
         }
     </style>
 </head>
@@ -191,21 +259,22 @@
 <!-- Sidebar -->
 <nav class="admin-sidebar" id="adminSidebar">
     <div class="brand-logo">
-        <i class="fas fa-shield-alt"></i>
+        <i class="fas fa-futbol"></i>
         SPORTYKUY ADMIN
     </div>
     <div class="p-2">
-        <div class="px-3 pb-3">
-            <small class="text-muted d-block">Logged in as</small>
+        <div class="px-3 pb-3 border-bottom border-gray-700">
             <strong class="d-block">{{ Auth::user()->name }}</strong>
-            <span class="badge bg-success mt-1">Super Admin</span>
+            <span class="badge bg-brand text-white mt-1 px-2 py-1" style="background-color: var(--brand)!important;">
+                <i class="fas fa-crown fa-xs me-1"></i> Super Admin
+            </span>
         </div>
 
-        <ul class="nav flex-column">
+        <ul class="nav flex-column mt-3">
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('superadmin.dashboard') ? 'active' : '' }}" 
                    href="{{ route('superadmin.dashboard') }}">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                    <i class="fas fa-chart-line"></i> Dashboard
                 </a>
             </li>
             <li class="nav-item">
@@ -217,22 +286,21 @@
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('superadmin.partners.*') ? 'active' : '' }}" 
                    href="{{ route('superadmin.partners.index') }}">
-                    <i class="fas fa-building"></i> Kelola Partner
+                    <i class="fas fa-handshake"></i> Kelola Partner
                 </a>
             </li>
-
             <li><hr class="nav-divider"></li>
 
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('profile.edit') }}">
-                    <i class="fas fa-user-cog"></i> Pengaturan Profil
+                    <i class="fas fa-user-gear"></i> Pengaturan Profil
                 </a>
             </li>
             <li class="nav-item">
                 <form method="POST" action="{{ route('logout') }}" class="d-inline">
                     @csrf
                     <button type="submit" class="nav-link text-danger w-100 text-start">
-                        <i class="fas fa-sign-out-alt"></i> Keluar
+                        <i class="fas fa-right-from-bracket me-2"></i> Keluar
                     </button>
                 </form>
             </li>
@@ -244,8 +312,8 @@
 <main class="admin-main">
     <div class="admin-header">
         <h1>@yield('title', 'Dashboard')</h1>
-        <a href="{{ route('profile.edit') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="fas fa-user me-1"></i> Profil
+        <a href="{{ route('profile.edit') }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-user me-1"></i> Profil Saya
         </a>
     </div>
 
@@ -258,15 +326,17 @@
 
     <div class="mt-4">
         @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i> {{ session('success') }}
+            <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+                <i class="fas fa-check-circle fs-4 me-2"></i>
+                <div>{{ session('success') }}</div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
         @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-circle me-2"></i> {{ session('error') }}
+            <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+                <i class="fas fa-exclamation-triangle fs-4 me-2"></i>
+                <div>{{ session('error') }}</div>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif

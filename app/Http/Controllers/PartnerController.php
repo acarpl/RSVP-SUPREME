@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use App\Models\Order;
 use App\Models\BookingConfirmation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,70 +14,65 @@ class PartnerController extends Controller
      * Tampilkan dashboard partner
      */
     public function dashboard()
-{
-    $partner = Auth::user();
-    $partnerId = $partner->id;
+    {
+        $partner = Auth::user();
+        $partnerId = $partner->id;
 
-    // Data statistik
-    $totalLapangan = \App\Models\Lapangan::where('partner_id', $partnerId)->count();
-    $totalBooking = \App\Models\Booking::whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))->count();
-    $confirmedBookings = \App\Models\Booking::whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
-        ->where('partner_status', 'dikonfirmasi')
-        ->count();
-    $pendingConfirmations = \App\Models\Booking::whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
-        ->where('status', 'dibayar')
-        ->where('partner_status', 'menunggu_konfirmasi')
-        ->count();
-    $pendapatan = \App\Models\Booking::whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
-        ->where('partner_status', 'dikonfirmasi')
-        ->sum('total_harga');
-
-    // Booking terbaru (10)
-    $latestBookings = \App\Models\Booking::with(['user', 'lapangan'])
-        ->whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
-        ->where('status', 'dibayar')
-        ->latest()
-        ->take(5)
-        ->get();
-
-    // Data chart (30 hari terakhir)
-    $bookingsChart = [];
-    for ($i = 29; $i >= 0; $i--) {
-        $date = now()->subDays($i);
-        $dateStr = $date->format('Y-m-d');
-        
-        $pending = \App\Models\Booking::whereDate('created_at', $dateStr)
-            ->whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
+        // Data statistik
+        $totalLapangan = \App\Models\Lapangan::where('partner_id', $partnerId)->count();
+        $totalBooking = \App\Models\Booking::whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))->count();
+        $confirmedBookings = \App\Models\Booking::whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
+            ->where('partner_status', 'dikonfirmasi')
+            ->count();
+        $pendingConfirmations = \App\Models\Booking::whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
             ->where('status', 'dibayar')
             ->where('partner_status', 'menunggu_konfirmasi')
             ->count();
-            
-        $confirmed = \App\Models\Booking::whereDate('created_at', $dateStr)
-            ->whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
+        $pendapatan = \App\Models\Booking::whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
             ->where('partner_status', 'dikonfirmasi')
-            ->count();
+            ->sum('total_harga');
 
-        $bookingsChart[] = [
-            'date' => $date->format('d M'),
-            'pending' => $pending,
-            'confirmed' => $confirmed
-        ];
+        $latestBookings = \App\Models\Booking::with(['user', 'lapangan'])
+            ->whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
+            ->where('status', 'dibayar')
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $bookingsChart = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $dateStr = $date->format('Y-m-d');
+            
+            $pending = \App\Models\Booking::whereDate('created_at', $dateStr)
+                ->whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
+                ->where('status', 'dibayar')
+                ->where('partner_status', 'menunggu_konfirmasi')
+                ->count();
+                
+            $confirmed = \App\Models\Booking::whereDate('created_at', $dateStr)
+                ->whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
+                ->where('partner_status', 'dikonfirmasi')
+                ->count();
+
+            $bookingsChart[] = [
+                'date' => $date->format('d M'),
+                'pending' => $pending,
+                'confirmed' => $confirmed
+            ];
+        }
+
+        return view('partner.dashboard', compact(
+            'totalLapangan',
+            'totalBooking',
+            'confirmedBookings',
+            'pendingConfirmations',
+            'pendapatan',
+            'latestBookings',
+            'bookingsChart'
+        ));
     }
 
-    return view('partner.dashboard', compact(
-        'totalLapangan',
-        'totalBooking',
-        'confirmedBookings',
-        'pendingConfirmations',
-        'pendapatan',
-        'latestBookings',
-        'bookingsChart'
-    ));
-}
-
-    /**
-     * Tampilkan form daftar mitra
-     */
     public function showForm()
     {
         if (Auth::user()->role === 'partner') {
@@ -88,9 +82,6 @@ class PartnerController extends Controller
         return view('partner.register');
     }
 
-    /**
-     * Proses pendaftaran mitra
-     */
     public function register(Request $request)
     {
         $request->validate([
@@ -118,82 +109,88 @@ class PartnerController extends Controller
     }
 
     /**
-     * Tampilkan daftar booking/order menunggu konfirmasi
+     * 🔥 KODE UTAMA: Tampilkan SEMUA BOOKING (tanpa order — aman dari error)
      */
-    public function confirmations()
+    public function confirmations(Request $request)
     {
         $partnerId = Auth::id();
+        $statusFilter = $request->query('status');
 
-        // Booking lapangan milik partner yang sudah dibayar & menunggu konfirmasi
-        $bookings = Booking::with('user', 'lapangan')
+        // 🔹 HANYA BOOKING — sama seperti di dashboard(), tapi semua status
+        $bookings = Booking::with(['user', 'lapangan'])
             ->whereHas('lapangan', fn($q) => $q->where('partner_id', $partnerId))
             ->where('status', 'dibayar')
-            ->where('partner_status', 'menunggu_konfirmasi')
-            ->latest()
-            ->paginate(10);
+            ->when($statusFilter, fn($q) => $q->where('partner_status', $statusFilter))
+            ->whereIn('partner_status', ['menunggu_konfirmasi', 'dikonfirmasi', 'ditolak'])
+            ->get()
+            ->map(function ($booking) {
+                return [
+                    'id' => $booking->id,
+                    'type' => 'booking',
+                    'reference' => 'BK-' . $booking->id,
+                    'customer' => optional($booking->user)->name ?? '—',
+                    'item' => optional($booking->lapangan)->nama ?? 'Lapangan tidak ditemukan',
+                    'date' => $booking->tanggal,
+                    'time' => $booking->jam_mulai . ' - ' . $booking->jam_selesai,
+                    'total' => $booking->total_harga,
+                    'status' => $booking->partner_status,
+                    'catatan' => optional($booking->confirmations()->latest()->first())->catatan ?? '-',
+                    'created_at' => $booking->created_at,
+                    'model' => $booking,
+                ];
+            });
 
-        // Orders (opsional - jika ingin konfirmasi pesanan produk)
-        // $orders = Order::with('user', 'items.product')
-        //     ->whereHas('items.product', fn($q) => $q->where('partner_id', $partnerId))
-        //     ->where('status', 'dibayar')
-        //     ->where('partner_status', 'menunggu_konfirmasi')
-        //     ->latest()
-        //     ->paginate(10);
+        // 🔸 $orders sementara kosong (karena order belum siap)
+        $orders = collect();
 
-        return view('partner.confirmations', compact('bookings'));
+        $items = $bookings->merge($orders)->sortByDesc('created_at')->values();
+
+        $statusOptions = [
+            '' => 'Semua Status',
+            'menunggu_konfirmasi' => 'Menunggu Konfirmasi',
+            'dikonfirmasi' => 'Dikonfirmasi',
+            'ditolak' => 'Ditolak',
+        ];
+
+        return view('partner.confirmations', compact('items', 'statusOptions', 'statusFilter'));
     }
 
     /**
-     * Proses konfirmasi booking oleh partner
+     * Update status booking via dropdown
      */
-    public function confirmBooking(Request $request, Booking $booking)
+    public function updateStatus(Request $request)
     {
-        $partner = Auth::user();
-
-        // Validasi kepemilikan
-        if ($booking->lapangan->partner_id !== $partner->id) {
-            return back()->withErrors(['Akses ditolak: Booking bukan milik Anda.']);
-        }
-
-        // Validasi status
-        if ($booking->status !== 'dibayar' || $booking->partner_status !== 'menunggu_konfirmasi') {
-            return back()->withErrors(['Booking tidak dalam status menunggu konfirmasi.']);
-        }
-
         $request->validate([
-            'status' => ['required', Rule::in(['dikonfirmasi', 'ditolak'])],
+            'type' => ['required', Rule::in(['booking'])], // hanya booking dulu
+            'id' => 'required|integer',
+            'status' => ['required', Rule::in(['menunggu_konfirmasi', 'dikonfirmasi', 'ditolak'])],
             'catatan' => 'nullable|string|max:500',
         ]);
 
-        // Update status
-        $newStatus = $request->status;
-        $booking->update([
-            'partner_status' => $newStatus,
-            'confirmed_by_partner_id' => $partner->id,
-        ]);
+        $partner = Auth::user();
+        $booking = Booking::findOrFail($request->id);
 
-        // Simpan log konfirmasi
+        // Validasi kepemilikan
+        if ($booking->lapangan->partner_id !== $partner->id) {
+            return back()->withErrors(['error' => 'Akses ditolak: Booking bukan milik Anda.']);
+        }
+
+        // Update status
+        $booking->update(['partner_status' => $request->status]);
+
+        // Log konfirmasi
         BookingConfirmation::create([
             'booking_id' => $booking->id,
+            'order_id' => null,
             'partner_id' => $partner->id,
             'type' => 'booking',
-            'status' => $newStatus,
+            'status' => $request->status,
             'catatan' => $request->catatan,
         ]);
 
-        // 🔔 Kirim notifikasi ke customer (opsional)
-        // $booking->user->notify(new \App\Notifications\BookingConfirmedByPartner($booking));
-
-        $message = $newStatus === 'dikonfirmasi' 
-            ? '✅ Booking berhasil dikonfirmasi.' 
-            : '⚠️ Booking ditolak. Customer telah diberi tahu.';
-
-        return back()->with('success', $message);
+        return back()->with('success', '✅ Status booking berhasil diubah.');
     }
 
-    /**
-     * Keluar dari mode partner
-     */
     public function leave()
     {
         $user = Auth::user();

@@ -67,4 +67,9 @@ class Booking extends Model
                $this->status === 'dibayar' && 
                $this->partner_status === 'menunggu_konfirmasi';
     }
+
+    public function confirmations()
+{
+    return $this->hasMany(BookingConfirmation::class, 'booking_id');
+}
 }

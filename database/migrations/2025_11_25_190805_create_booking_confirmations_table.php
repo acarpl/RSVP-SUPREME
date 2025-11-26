@@ -17,7 +17,7 @@ return new class extends Migration
         $table->foreignId('order_id')->nullable()->constrained()->nullOnDelete();
         $table->foreignId('partner_id')->constrained('users'); // partner yang konfirmasi
         $table->enum('type', ['booking', 'order']);
-        $table->string('status')->default('menunggu_konfirmasi'); // menunggu_konfirmasi, dikonfirmasi, ditolak
+        $table->string('status')->default('dikonfirmasi'); // menunggu_konfirmasi, dikonfirmasi, ditolak
         $table->text('catatan')->nullable();
         $table->timestamps();
     });
@@ -25,12 +25,12 @@ return new class extends Migration
     // Tambah kolom ke bookings & orders
     Schema::table('bookings', function (Blueprint $table) {
         $table->foreignId('confirmed_by_partner_id')->nullable()->constrained('users');
-        $table->string('partner_status')->default('menunggu_konfirmasi'); // menunggu_konfirmasi, dikonfirmasi, ditolak
+        $table->string('partner_status')->default('dikonfirmasi'); // menunggu_konfirmasi, dikonfirmasi, ditolak
     });
 
     Schema::table('orders', function (Blueprint $table) {
         $table->foreignId('confirmed_by_partner_id')->nullable()->constrained('users');
-        $table->string('partner_status')->default('menunggu_konfirmasi');
+        $table->string('partner_status')->default('dikonfirmasi');
     });
 }
 
