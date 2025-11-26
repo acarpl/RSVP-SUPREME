@@ -100,89 +100,64 @@
     <div class="container">
         <div class="row g-5 align-items-center">
 
-            {{-- TEXT (kiri) --}}
+            <!-- TEXT (kiri / atas di mobile) -->
             <div class="col-lg-6">
-                <h2 class="fw-bold display-6 text-brand">Tentang Sportykuy</h2>
-                <p class="lead text-muted">All In One Booking Apps.</p>
+                <h2 class="fw-bold display-6 text-brand mb-3">Tentang Sportykuy</h2>
+                <p class="lead text-muted mb-4">All-in-One Booking Apps untuk Lapangan Olahraga.</p>
+
                 <p class="mb-4">
-                    Platform yang memudahkan pelanggan memesan lapangan favorit, sekaligus membantu mitra mengelola bisnis lapangan secara digital — dari booking, pembayaran otomatis, hingga laporan harian.
+                    Sportykuy memudahkan pelanggan memesan lapangan futsal, badminton, atau basket secara instan — sekaligus membantu mitra mengelola jadwal, pembayaran, dan laporan harian dalam satu sistem terintegrasi.
                 </p>
 
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="d-flex align-items-start">
-                            <div class="bg-brand text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;">
-                                <i class="fas fa-check"></i>
-                            </div>
+                            <i class="fas fa-check-circle text-success mt-1 me-2 fs-5"></i>
                             <div>
-                                <h5 class="h6 fw-bold mb-1">100+ Venue</h5>
-                                <p class="small text-muted mb-0">Partner resmi Jabodetabek.</p>
+                                <h6 class="fw-bold mb-0">100+ Venue Aktif</h6>
+                                <small class="text-muted">Jabodetabek & terus berkembang</small>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="d-flex align-items-start">
-                            <div class="bg-brand text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;">
-                                <i class="fas fa-shield-alt"></i>
-                            </div>
+                            <i class="fas fa-shield-check text-primary mt-1 me-2 fs-5"></i>
                             <div>
-                                <h5 class="h6 fw-bold mb-1">Pembayaran Aman</h5>
-                                <p class="small text-muted mb-0">Via Midtrans.</p>
+                                <h6 class="fw-bold mb-0">Pembayaran Aman</h6>
+                                <small class="text-muted">Midtrans & rekonsiliasi otomatis</small>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            {{-- 3 FOUNDER PHOTOS (kanan, vertikal) --}}
+            <!-- FOUNDER (kanan / bawah di mobile) -->
             <div class="col-lg-6">
+                <h3 class="fw-bold mb-4 text-center text-lg-start">Dibangun oleh Tim</h3>
+
                 <div class="row g-4">
+                    @php
+                        $founders = [
+                            ['name' => 'I\'Zaz Ramdhany', 'role' => 'System & Full-Stack Developer', 'img' => 'https://github.com/acarpl/RSVP-SUPREME/blob/main/WhatsApp%20Image%202025-11-22%20at%2013.43.02_395e63db.jpg?raw=true'],
+                            ['name' => 'Rasya Falqi Gani', 'role' => 'UI/UX Designer & Full-Stack Developer', 'img' => 'https://github.com/acarpl/RSVP-SUPREME/blob/main/WhatsApp%20Image%202025-11-22%20at%2013.43.09_e2479526.jpg?raw=true'],
+                            ['name' => 'Zidan Fakhry Mylan', 'role' => 'System & Full-Stack Developer', 'img' => 'https://github.com/acarpl/RSVP-SUPREME/blob/main/WhatsApp%20Image%202025-11-22%20at%2013.43.10_9bd4d4c6.jpg?raw=true'],
+                        ];
+                    @endphp
 
-                    {{-- Founder 1 --}}
-                    <div class="col-12">
-                        <div class="d-flex align-items-center">
-                            <img 
-                                src="https://github.com/acarpl/RSVP-SUPREME/blob/main/WhatsApp%20Image%202025-11-22%20at%2013.43.02_395e63db.jpg?raw=true" 
-                                alt="I'Zaz Ramdhany"
-                                class="rounded-circle me-3"
-                                style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #f8f9fa;">
-                            <div>
-                                <h5 class="mb-0 fw-bold">I'Zaz Ramdhany</h5>
-                                <p class="text-muted small mb-0">Developer</p>
+                    @foreach($founders as $founder)
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <img 
+                                    src="{{ $founder['img'] }}" 
+                                    alt="{{ $founder['name'] }}"
+                                    class="rounded-circle mb-3 border"
+                                    style="width: 140px; height: 140px; object-fit: cover; object-position: center;"
+                                    loading="lazy">
+                                <h6 class="fw-bold mb-1">{{ $founder['name'] }}</h6>
+                                <p class="text-muted small mb-0">{{ $founder['role'] }}</p>
                             </div>
                         </div>
-                    </div>
-
-                    {{-- Founder 2 --}}
-                    <div class="col-12">
-                        <div class="d-flex align-items-center">
-                            <img 
-                                src="https://github.com/acarpl/RSVP-SUPREME/blob/main/WhatsApp%20Image%202025-11-22%20at%2013.43.09_e2479526.jpg?raw=true" 
-                                alt="Rasya"
-                                class="rounded-circle me-3"
-                                style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #f8f9fa;">
-                            <div>
-                                <h5 class="mb-0 fw-bold">Rasya Falqi Gani</h5>
-                                <p class="text-muted small mb-0">Developer</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Founder 3 --}}
-                    <div class="col-12">
-                        <div class="d-flex align-items-center">
-                            <img 
-                                src="https://github.com/acarpl/RSVP-SUPREME/blob/main/WhatsApp%20Image%202025-11-22%20at%2013.43.10_9bd4d4c6.jpg?raw=true" 
-                                alt="ZIdane"
-                                class="rounded-circle me-3"
-                                style="width: 80px; height: 80px; object-fit: cover; border: 3px solid #f8f9fa;">
-                            <div>
-                                <h5 class="mb-0 fw-bold">Zidan Fakhry Mylan</h5>
-                                <p class="text-muted small mb-0">Developer</p>
-                            </div>
-                        </div>
-                    </div>
-
+                    @endforeach
                 </div>
             </div>
 

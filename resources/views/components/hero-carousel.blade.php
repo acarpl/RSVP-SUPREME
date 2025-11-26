@@ -15,7 +15,7 @@
                 <h2 class="text-white fw-bold">Booking Lapangan Mudah!</h2>
                 <p class="fs-5">Cari, pesan, main — semua dalam satu aplikasi.</p>
                 @auth
-                <a href="{{ route('booking.index') }}" class="btn btn-brand">
+                <a href="{{ route('riwayat.index') }}" class="btn btn-brand">
                     Riwayat Booking
                 </a>
             @else
