@@ -72,7 +72,7 @@ class LapanganController extends Controller
         ]);
 
         $lapangan = new Lapangan();
-        $lapangan->partner_id = Auth::id(); // ✅
+        $lapangan->partner_id = Auth::id(); 
         $lapangan->nama = $request->nama;
         $lapangan->lokasi = $request->lokasi;
         $lapangan->kapasitas = $request->kapasitas;
@@ -80,7 +80,6 @@ class LapanganController extends Controller
         $lapangan->status = $request->status;
 
         if ($request->hasFile('gambar')) {
-            // ✅ Folder: 'lapangans' (konsisten)
             $lapangan->gambar = $request->file('gambar')->store('lapangans', 'public');
         }
 
@@ -123,7 +122,7 @@ class LapanganController extends Controller
             if ($lapangan->gambar && Storage::disk('public')->exists($lapangan->gambar)) {
                 Storage::disk('public')->delete($lapangan->gambar);
             }
-            // ✅ Folder: 'lapangans' (konsisten)
+            
             $lapangan->gambar = $request->file('gambar')->store('lapangans', 'public');
         }
 
@@ -147,7 +146,6 @@ class LapanganController extends Controller
                         ->with('success', 'Lapangan "' . $nama . '" berhasil dihapus!');
     }
 
-    // ✅ Helper: authorize partner
     private function authorizePartner()
     {
         if (!Auth::check() || Auth::user()->role !== 'partner') {
@@ -155,7 +153,6 @@ class LapanganController extends Controller
         }
     }
 
-    // ✅ Helper: pastikan milik sendiri
     private function authorizeOwnership(Lapangan $lapangan)
     {
         if ($lapangan->partner_id !== Auth::id()) {

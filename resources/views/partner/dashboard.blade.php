@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.partner')
 
 @section('title', 'Dashboard Mitra')
 

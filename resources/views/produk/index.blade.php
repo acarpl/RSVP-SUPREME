@@ -8,7 +8,7 @@
             <p class="text-muted mb-0">{{ $products->count() }} produk ditemukan</p>
         </div>
 
-        {{-- ✅ Hanya tampilkan tombol "Tambah" untuk partner --}}
+        {{-- Tombol Tambah Produk --}}
         @if(auth()->check() && auth()->user()->role === 'partner')
             <a href="{{ route('partner.products.create') }}" class="btn btn-brand px-4 py-2 mt-3 mt-md-0">
                 <i class="fas fa-plus me-1"></i> Tambah Produk
@@ -116,7 +116,7 @@
                                             </form>
                                         </div>
                                     @else
-                                        {{-- User biasa/guest: Tambah ke keranjang --}}
+                                        {{-- User biasa: Tambah ke keranjang --}}
                                         <button 
                                             @click="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->price }})"
                                             :disabled="adding[{{ $product->id }}]"
@@ -175,7 +175,7 @@
         box-shadow: 0 0.75rem 1.5rem rgba(216, 92, 92, 0.15) !important;
     }
     .ratio-16x9 {
-        --bs-aspect-ratio: 62.5 %; /* 16:10 → lebih tinggi dari 16:9 untuk tampilan produk */
+        --bs-aspect-ratio: 100%;
     }
     .object-fit-cover {
         object-fit: cover;

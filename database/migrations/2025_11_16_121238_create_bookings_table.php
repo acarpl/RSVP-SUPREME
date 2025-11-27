@@ -12,17 +12,24 @@ return new class extends Migration
    public function up()
 {
     Schema::create('bookings', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('user_id')->constrained()->onDelete('cascade');
-        $table->foreignId('lapangan_id')->constrained()->onDelete('cascade');
-        $table->date('tanggal');
-        $table->time('jam_mulai');
-        $table->time('jam_selesai');
-        $table->integer('durasi');
-        $table->decimal('total_harga', 12, 2);
-        $table->enum('status', ['menunggu', 'dikonfirmasi', 'selesai', 'dibatalkan'])->default('dikonfirmasi');
-        $table->timestamps();
-    });
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('lapangan_id')->constrained()->onDelete('cascade');
+            $table->date('tanggal');
+            $table->time('jam_mulai');
+            $table->time('jam_selesai');
+            $table->integer('durasi');
+            $table->decimal('total_harga', 12, 2);
+            $table->enum('status', [
+                'menunggu_pembayaran',
+                'dibayar',
+                'dibatalkan',
+                'kadaluarsa'
+            ])->default('dibayar');
+            $table->string('order_id')->nullable()->unique();
+            $table->string('snap_token')->nullable();
+            $table->timestamps();
+        });
 }
 
 
