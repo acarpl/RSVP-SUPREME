@@ -12,23 +12,53 @@ class LapanganController extends Controller
     // =============== CUSTOMER/GUEST ===============
 
     public function customerIndex(Request $request)
-{
-    $query = Lapangan::where('status', 'aktif');
+    {
+        $query = Lapangan::where('status', 'aktif');
 
-    // 🔍 Filter berdasarkan search
-    if ($request->filled('search')) {
-        $search = $request->search;
-        $query->where(function ($q) use ($search) {
-            $q->where('nama', 'like', "%{$search}%")
-              ->orWhere('alamat', 'like', "%{$search}%");
-        });
+        // Pencarian umum (nama/lokasi)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('lokasi', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter berdasarkan kota (dari kolom `lokasi`)
+        if ($request->filled('kota')) {
+            $kota = $request->kota;
+            $query->where('lokasi', 'like', "%{$kota}%");
+        }
+
+        // Filter berdasarkan tipe (dari kolom `nama`)
+        if ($request->filled('tipe')) {
+            $tipe = $request->tipe;
+
+            // Keyword mapping untuk deteksi tipe dari `nama`
+            $keywords = [
+                'futsal'     => ['futsal', 'lapangan futsal', 'futsal arena'],
+                'badminton'  => ['badminton', 'bulutangkis', 'lapangan badminton'],
+                'basket'     => ['basket', 'basketball', 'lapangan basket'],
+                'tenis'      => ['tenis', 'tennis', 'lapangan tenis'],
+            ];
+
+            if (isset($keywords[$tipe])) {
+                $query->where(function ($q) use ($keywords, $tipe) {
+                    foreach ($keywords[$tipe] as $keyword) {
+                        $q->orWhere('nama', 'like', "%{$keyword}%");
+                    }
+                });
+            }
+        }
+
+        $lapangans = $query->latest()->paginate(6);
+
+        // Kirim data filter ke view
+        return view('lapangan.index', compact('lapangans'))
+               ->with('search', $request->search ?? '')
+               ->with('kota', $request->kota ?? '')
+               ->with('tipe', $request->tipe ?? '');
     }
-
-    $lapangans = $query->latest()->paginate(6);
-
-    return view('lapangan.index', compact('lapangans'))
-           ->with('search', $request->search ?? '');
-}
 
     public function customerShow(Lapangan $lapangan)
     {
@@ -44,7 +74,6 @@ class LapanganController extends Controller
     {
         $this->authorizePartner();
 
-        // ✅ DIPERBAIKI: partner_id (bukan user_id)
         $lapangans = Lapangan::where('partner_id', Auth::id())
                              ->latest()
                              ->paginate(10);
@@ -122,7 +151,6 @@ class LapanganController extends Controller
             if ($lapangan->gambar && Storage::disk('public')->exists($lapangan->gambar)) {
                 Storage::disk('public')->delete($lapangan->gambar);
             }
-            
             $lapangan->gambar = $request->file('gambar')->store('lapangans', 'public');
         }
 
@@ -145,6 +173,8 @@ class LapanganController extends Controller
         return redirect()->route('partner.lapangan.index')
                         ->with('success', 'Lapangan "' . $nama . '" berhasil dihapus!');
     }
+
+    // =============== HELPER ===============
 
     private function authorizePartner()
     {

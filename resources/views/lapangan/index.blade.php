@@ -19,16 +19,50 @@
         </div>
     @endif
 
-    <!-- Search & Count -->
-    <div class="d-flex justify-content-end mb-4">
-    <form action="{{ route('lapangan.index') }}" method="GET" class="d-flex gap-2">
-        <input type="text" name="search" class="form-control" placeholder="Cari lapangan..." 
-               value="{{ request('search') }}" style="max-width: 300px;">
-        <button type="submit" class="btn btn-outline-brand">
-            <i class="fas fa-search"></i>
-        </button>
-    </form>
-</div>
+    <!-- Filter Form (Updated) -->
+    <div class="mb-4 p-3 bg-white rounded shadow-sm">
+        <form method="GET" action="{{ route('lapangan.index') }}" class="row g-3 align-items-end">
+            {{-- Pencarian Umum --}}
+            <div class="col-md-4">
+                <label class="form-label fw-bold"><i class="fas fa-search me-1"></i> Cari Nama/Lokasi</label>
+                <input type="text" name="search" class="form-control" 
+                       value="{{ request('search') }}"
+                       placeholder="Contoh: Futsal, Gading...">
+            </div>
+
+            {{-- Filter Kota --}}
+            <div class="col-md-3">
+                <label class="form-label fw-bold"><i class="fas fa-map-marker-alt me-1"></i> Kota</label>
+                <input type="text" name="kota" class="form-control" 
+                       value="{{ request('kota') }}"
+                       placeholder="Contoh: Jakarta, Bekasi">
+            </div>
+
+            {{-- Filter Tipe --}}
+            <div class="col-md-3">
+                <label class="form-label fw-bold"><i class="fas fa-futbol me-1"></i> Tipe Lapangan</label>
+                <select name="tipe" class="form-select">
+                    <option value="">Semua Tipe</option>
+                    <option value="futsal"     {{ request('tipe') == 'futsal'     ? 'selected' : '' }}>Futsal</option>
+                    <option value="badminton"  {{ request('tipe') == 'badminton'  ? 'selected' : '' }}>Badminton</option>
+                    <option value="basket"     {{ request('tipe') == 'basket'     ? 'selected' : '' }}>Basket</option>
+                    <option value="tenis"      {{ request('tipe') == 'tenis'      ? 'selected' : '' }}>Tenis</option>
+                </select>
+            </div>
+
+            {{-- Tombol --}}
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-brand w-100">
+                    <i class="fas fa-filter me-1"></i> Filter
+                </button>
+                @if(request()->anyFilled(['search', 'kota', 'tipe']))
+                    <a href="{{ route('lapangan.index') }}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-sync me-1"></i> Reset
+                    </a>
+                @endif
+            </div>
+        </form>
+    </div>
 
     <!-- Grid Lapangan -->
     @if($lapangans->count())
@@ -84,30 +118,13 @@
                             <div class="d-flex align-items-center text-muted small mb-3">
                                 <i class="fas fa-users me-1"></i>
                                 <span>{{ $lapangan->kapasitas }} pemain</span>
-                                @if($lapangan->partner && $lapangan->partner->rating)
+                                @if($lapangan->partner && $lapangan->partner->rating ?? null)
                                     <span class="ms-2">
                                         <i class="fas fa-star text-warning me-1"></i> 
                                         {{ number_format($lapangan->partner->rating, 1) }}
                                     </span>
                                 @endif
                             </div>
-
-                            <!-- Fitur -->
-                            @php
-                                $fitur = [];
-                                if ($lapangan->fitur_kamar_ganti) $fitur[] = 'Kamar Ganti';
-                                if ($lapangan->fitur_parkir) $fitur[] = 'Parkir';
-                                if ($lapangan->fitur_wifi) $fitur[] = 'WiFi';
-                                if ($lapangan->fitur_kantin) $fitur[] = 'Kantin';
-                            @endphp
-
-                            @if(count($fitur))
-                                <div class="d-flex flex-wrap gap-1 mb-3">
-                                    @foreach($fitur as $f)
-                                        <span class="badge bg-light text-dark small">{{ $f }}</span>
-                                    @endforeach
-                                </div>
-                            @endif
 
                             <!-- Tombol -->
                             <div class="mt-auto d-grid">
